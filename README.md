@@ -1,32 +1,56 @@
-# CentrarRaton
+# 🪤 Mousetrap
 
-¿Has perdido el puntero entre varias pantallas? **Mantén pulsados los dos botones del ratón durante 3 segundos** y el puntero salta al centro de la pantalla que elijas, marcado con un disco naranja para que lo veas al instante.
+**El puntero se te escapa entre pantallas. Esta es la ratonera.**
 
-> **English:** a tiny Windows tray utility. Hold both mouse buttons for 3 seconds and the pointer jumps to the middle of a screen of your choice, highlighted with an orange disc. The menu is shown in English on non-Spanish systems.
+*Your pointer keeps escaping across screens. This is the trap.*
 
-- Un solo `.exe` de pocos KB. No instala nada y no necesita permisos de administrador.
-- Funciona con varias pantallas, también si tienen distinto zoom o están en vertical.
-- Al soltar los botones no se hace clic ni se abre ningún menú contextual en lo que hubiera debajo.
+![C#](https://img.shields.io/badge/C%23-.NET%20Framework%204-512BD4?logo=dotnet&logoColor=white)
+![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4)
+![Size](https://img.shields.io/badge/exe-17%20KB-FF9600)
+![License](https://img.shields.io/badge/license-GPL--3.0-3DDC84)
 
-## Uso
+[**🇪🇸 Español**](#-español) · [**🇬🇧 English**](#-english)
 
-1. Ejecuta `CentrarRaton.exe`. Aparece un círculo naranja en la bandeja del sistema, junto al reloj.
-2. Mantén pulsados el botón izquierdo y el derecho a la vez durante 3 segundos.
+---
+
+## 🇪🇸 Español
+
+### El problema
+
+Tres pantallas, un puntero y ni idea de dónde está. Todos conocemos el ritual: sacudir el ratón como una maraca y perseguir con la mirada lo primero que se mueva. Funciona, pero elegante no es.
+
+**Mousetrap** parte de otra idea: no lo busques, hazlo venir. Mantén pulsados los dos botones del ratón durante 3 segundos y el puntero aparece en el centro de la pantalla que tú elijas, marcado con un disco naranja difícil de no ver.
+
+### ⚙️ Cómo funciona
+
+| Mecanismo | Qué hace |
+|---|---|
+| ⏱️ **Dos botones, 3 segundos** | Izquierdo y derecho a la vez: un gesto que casi nunca se hace por accidente. Si a ti sí te pasa, el tiempo se cambia |
+| 🎯 **Salto al centro** | A la pantalla principal, a la pantalla donde ya esté el puntero o a una concreta; se elige desde la bandeja |
+| 🟠 **Disco naranja** | Marca el sitio un instante para que el ojo lo encuentre a la primera |
+| 🤫 **Sin clics fantasma** | Al soltar los botones no se pulsa nada ni se abre ningún menú contextual en lo que hubiera debajo |
+| 🖥️ **Pantallas de todo tipo** | Con distinto zoom, en vertical o colocadas más arriba que la principal: el centro es el centro |
+| 🪶 **Un solo exe de 17 KB** | Sin instalador, sin permisos de administrador y sin conectarse a nada |
+
+### 🖱️ Uso
+
+1. Ejecuta `Mousetrap.exe`. Aparece un círculo naranja en la bandeja del sistema, junto al reloj.
+2. Mantén pulsados los dos botones del ratón durante 3 segundos.
 3. El puntero aparece en el centro de la pantalla principal.
 
-Con el botón derecho sobre el icono de la bandeja puedes:
+Con el botón derecho sobre el icono se elige el destino y poco más:
 
 | Opción | Qué hace |
-| --- | --- |
-| La pantalla principal | Siempre al centro de la pantalla principal (por defecto). |
-| La pantalla donde ya esté el puntero | Lo centra sin cambiarlo de pantalla. |
-| Pantalla 1, 2, 3… | Siempre al centro de esa pantalla. Si se desconecta, usa la principal. |
-| Iniciar con Windows | Arranca la aplicación al iniciar sesión. |
-| Salir | Cierra la aplicación. |
+|---|---|
+| La pantalla principal | Siempre al centro de la principal (por defecto) |
+| La pantalla donde ya esté el puntero | Lo centra sin cambiarlo de pantalla |
+| Pantalla 1, 2, 3… | Siempre a esa pantalla; si la desenchufas, vuelve a la principal |
+| Iniciar con Windows | Arranca sola al iniciar sesión |
+| Salir | Cierra la ratonera |
 
-## Configuración
+### 🎛️ Configuración
 
-Lo que elijas en el menú se guarda en `%APPDATA%\CentrarRaton\config.ini`. Ahí también puedes cambiar el tiempo de pulsación; reinicia la aplicación después de editarlo.
+Lo que elijas en el menú se guarda en `%APPDATA%\Mousetrap\config.ini`. Ahí también se cambia el tiempo de pulsación; reinicia la aplicación después de editarlo.
 
 ```ini
 # primary | cursor | nombre de la pantalla, por ejemplo \\.\DISPLAY2
@@ -35,42 +59,134 @@ target=primary
 hold_ms=3000
 ```
 
-## Compilar
+### 🎯 Decisiones técnicas
 
-Solo hace falta Windows 10 u 11: se compila con el compilador de C# que ya viene con el sistema (.NET Framework 4).
+| Decisión | Por qué |
+|---|---|
+| 🪝 **Sin ganchos de ratón ni de teclado** | Un temporizador pregunta 20 veces por segundo si los dos botones están pulsados (`GetAsyncKeyState`). Nada se interpone entre tu ratón y el resto de programas |
+| 🟠 **El disco también trabaja** | Aparece justo debajo del puntero y es él quien recibe las sueltas de los botones; por eso no llegan a la ventana que haya debajo |
+| ✋ **La pulsación a medias se cancela** | Antes de saltar avisa a la ventana que tenía el clic en curso (`WM_CANCELMODE`), como hace Windows cuando aparece un diálogo; así el salto no se toma por un arrastre |
+| 📐 **DPI por monitor** | Sin ello, en pantallas con un zoom distinto al de la principal las coordenadas se escalan y el puntero cae descentrado |
+| 🧰 **Compilado con lo que trae Windows** | El compilador de C# de .NET Framework 4 viene de serie en Windows 10 y 11: ni SDK, ni NuGet, ni nada que instalar |
+
+### 🧪 Tests
+
+| Comando | Qué comprueba |
+|---|---|
+| `test.cmd` | 26 tests de la lógica: detección de la pulsación, configuración y elección de pantalla |
+| `test.cmd e2e` | Lo anterior y una prueba de extremo a extremo contra el `.exe` real |
+
+La prueba de extremo a extremo pulsa los botones con entrada sintética sobre una ventana propia y comprueba dónde acaba el puntero, así que **toma el control del ratón unos 20 segundos**. Cierra antes la aplicación si la tienes abierta.
+
+> 😄 Sí: para probar una app que mueve el ratón hay que dejar que te muevan el ratón.
+
+### ▶️ Compilar
 
 ```bat
 build.cmd
 ```
 
-El resultado queda en `dist\CentrarRaton.exe`.
+El resultado queda en `dist\Mousetrap.exe`.
 
-## Tests
+### ⚠️ Limitaciones
 
-```bat
-test.cmd
-```
-
-ejecuta los tests de la lógica (detección de la pulsación, configuración y elección de pantalla).
-
-```bat
-test.cmd e2e
-```
-
-añade una prueba de extremo a extremo contra el `.exe` real. Pulsa los botones con entrada sintética sobre una ventana propia y comprueba dónde acaba el puntero, así que **toma el control del ratón durante unos 20 segundos**. Cierra antes la aplicación si la tienes abierta.
-
-## Cómo funciona
-
-- Un temporizador consulta 20 veces por segundo el estado de los dos botones (`GetAsyncKeyState`). No instala ganchos de ratón ni de teclado.
-- Cuando llevan pulsados juntos el tiempo configurado, avisa a la ventana que tenía la pulsación a medias para que la cancele (`WM_CANCELMODE`) y mueve el puntero (`SetCursorPos`).
-- El disco naranja aparece justo debajo del puntero y recibe él las sueltas de los botones; por eso no llegan a la ventana que haya debajo.
-
-## Limitaciones
-
-- No actúa mientras la ventana activa pertenece a un programa abierto como administrador (el Administrador de tareas, por ejemplo): Windows no deja que un programa normal vea ahí el estado del ratón.
-- En juegos que usan los dos botones a la vez durante varios segundos el puntero también saltará. Sal de la aplicación desde la bandeja mientras juegas.
+- No actúa mientras la ventana activa sea de un programa abierto como administrador (el Administrador de tareas, por ejemplo): Windows no deja que un programa normal vea ahí el estado del ratón.
+- En juegos que usan los dos botones a la vez durante varios segundos, el puntero también saltará. Sal de la aplicación desde la bandeja mientras juegas.
 - El ejecutable no está firmado, así que algunos antivirus lo analizan o retienen la primera vez que se ejecuta.
 
-## Licencia
+### 📄 Licencia
 
 © 2026 Bernabé Muñoz Peñas. Software libre bajo la [GNU GPL v3.0](LICENSE): puedes usarlo, modificarlo y redistribuirlo; si distribuyes una versión modificada, tiene que ir con su código y bajo esta misma licencia.
+
+---
+
+## 🇬🇧 English
+
+### The problem
+
+Three screens, one pointer and no idea where it went. We all know the ritual: shake the mouse like a maraca and chase whatever moves. It works, but nobody would call it elegant.
+
+**Mousetrap** takes a different approach: don't look for it, make it come to you. Hold both mouse buttons for 3 seconds and the pointer shows up in the middle of the screen you choose, marked with an orange disc that is hard to miss.
+
+### ⚙️ How it works
+
+| Mechanism | What it does |
+|---|---|
+| ⏱️ **Two buttons, 3 seconds** | Left and right together: a gesture you almost never make by accident. If you do, the hold time is configurable |
+| 🎯 **Jump to the centre** | Of the main screen, the screen the pointer is already on, or a specific one; you pick from the tray |
+| 🟠 **Orange disc** | Marks the spot for a moment so your eye finds it first time |
+| 🤫 **No ghost clicks** | Letting go of the buttons clicks nothing and opens no context menu on whatever was underneath |
+| 🖥️ **Any screen layout** | Different zoom levels, portrait screens, screens sitting higher than the main one: the centre is the centre |
+| 🪶 **A single 17 KB exe** | No installer, no admin rights, no network connections |
+
+### 🖱️ Usage
+
+1. Run `Mousetrap.exe`. An orange circle appears in the system tray, next to the clock.
+2. Hold both mouse buttons for 3 seconds.
+3. The pointer shows up in the middle of the main screen.
+
+Right-click the tray icon to choose the destination, and not much else:
+
+| Option | What it does |
+|---|---|
+| The main screen | Always the middle of the main screen (default) |
+| The screen the pointer is already on | Centres it without changing screens |
+| Screen 1, 2, 3… | Always that screen; if it gets unplugged, falls back to the main one |
+| Start with Windows | Launches on sign-in |
+| Exit | Closes the trap |
+
+The menu is shown in Spanish on Spanish systems and in English everywhere else.
+
+### 🎛️ Configuration
+
+Whatever you pick in the menu is saved to `%APPDATA%\Mousetrap\config.ini`. The hold time lives there too; restart the app after editing it.
+
+```ini
+# primary | cursor | a display name such as \\.\DISPLAY2
+target=primary
+# milliseconds both buttons must be held (minimum 500)
+hold_ms=3000
+```
+
+### 🎯 Technical decisions
+
+| Decision | Why |
+|---|---|
+| 🪝 **No mouse or keyboard hooks** | A timer asks 20 times a second whether both buttons are down (`GetAsyncKeyState`). Nothing sits between your mouse and the rest of your programs |
+| 🟠 **The disc earns its keep** | It appears right under the pointer and is the one that receives the button releases, so they never reach the window underneath |
+| ✋ **The half-finished press is cancelled** | Before jumping, it tells the window that had the press in progress to give up (`WM_CANCELMODE`), as Windows does when a dialog pops up, so the jump isn't taken for a drag |
+| 📐 **Per-monitor DPI** | Without it, coordinates get scaled on screens whose zoom differs from the main one and the pointer lands off-centre |
+| 🧰 **Built with what Windows ships** | The .NET Framework 4 C# compiler comes with Windows 10 and 11: no SDK, no NuGet, nothing to install |
+
+### 🧪 Tests
+
+| Command | What it checks |
+|---|---|
+| `test.cmd` | 26 logic tests: hold detection, configuration and screen choice |
+| `test.cmd e2e` | The above plus an end-to-end test against the real `.exe` |
+
+The end-to-end test presses the buttons with synthetic input over a window of its own and checks where the pointer ends up, so it **takes over the mouse for about 20 seconds**. Exit the app first if it is running.
+
+> 😄 Yes: to test an app that moves your mouse, you have to let something move your mouse.
+
+### ▶️ Build
+
+```bat
+build.cmd
+```
+
+The result lands in `dist\Mousetrap.exe`.
+
+### ⚠️ Limitations
+
+- It does nothing while the active window belongs to a program running as administrator (Task Manager, for example): Windows won't let a normal program see the mouse state there.
+- In games that hold both buttons for several seconds, the pointer will jump too. Exit the app from the tray while you play.
+- The executable isn't signed, so some antivirus tools scan or hold it the first time it runs.
+
+### 📄 License
+
+© 2026 Bernabé Muñoz Peñas. Free software under the [GNU GPL v3.0](LICENSE): use it, modify it and redistribute it; if you distribute a modified version, it has to ship with its source under this same licence.
+
+---
+
+<sub>Built by [Bernabé Muñoz Peñas](https://www.linkedin.com/in/bernabemunozpenas/) · C# · WinForms · Win32</sub>
