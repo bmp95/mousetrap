@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Globalization;
 using System.Text;
 
-namespace CentrarRaton
+namespace Mousetrap
 {
     // Decides when "both buttons held long enough" has happened.
     // Fed one reading per timer tick; fires once per uninterrupted hold.
@@ -64,7 +64,7 @@ namespace CentrarRaton
         public string ToText()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("# CentrarRaton");
+            sb.AppendLine("# Mousetrap");
             sb.AppendLine("# target:  primary | cursor | a display name such as \\\\.\\DISPLAY2");
             sb.AppendLine("# hold_ms: how long both buttons must be held (restart the app after editing)");
             sb.AppendLine("target=" + Target);

@@ -31,7 +31,7 @@ static class E2E
 
         public Probe(Point location)
         {
-            Text = "CentrarRaton E2E";
+            Text = "Mousetrap E2E";
             StartPosition = FormStartPosition.Manual;
             Location = location;
             ClientSize = new Size(360, 220);
@@ -63,10 +63,10 @@ static class E2E
     static int Main(string[] args)
     {
         exe = Path.GetFullPath(args[0]);
-        config = Path.Combine(Path.GetTempPath(), "centrar-raton-e2e.ini");
+        config = Path.Combine(Path.GetTempPath(), "mousetrap-e2e.ini");
         if (Process.GetProcessesByName(Path.GetFileNameWithoutExtension(exe)).Length > 0)
         {
-            Console.WriteLine("CentrarRaton is already running. Exit it from its tray icon and try again.");
+            Console.WriteLine("Mousetrap is already running. Exit it from its tray icon and try again.");
             return 2;
         }
         if (Process.GetProcessesByName("LogonUI").Length > 0)

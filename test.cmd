@@ -14,4 +14,4 @@ if /i not "%1"=="e2e" exit /b 0
 
 call "%~dp0build.cmd" || exit /b 1
 "%CSC%" /nologo /codepage:65001 /win32manifest:app.manifest /out:dist\E2E.exe /r:System.Windows.Forms.dll /r:System.Drawing.dll tests\E2E.cs || exit /b 1
-dist\E2E.exe dist\CentrarRaton.exe
+dist\E2E.exe dist\Mousetrap.exe

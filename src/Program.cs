@@ -10,7 +10,7 @@ using System.Threading;
 using System.Windows.Forms;
 using Microsoft.Win32;
 
-namespace CentrarRaton
+namespace Mousetrap
 {
     static class Program
     {
@@ -18,12 +18,12 @@ namespace CentrarRaton
         static void Main(string[] args)
         {
             bool first;
-            using (new Mutex(true, "CentrarRaton.SingleInstance", out first))
+            using (new Mutex(true, "Mousetrap.SingleInstance", out first))
             {
                 if (!first) return;
                 string configPath = args.Length == 2 && args[0] == "--config"
                     ? args[1]
-                    : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "CentrarRaton", "config.ini");
+                    : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Mousetrap", "config.ini");
                 Application.EnableVisualStyles();
                 using (new TrayApp(configPath)) Application.Run();
             }
@@ -34,7 +34,7 @@ namespace CentrarRaton
     // have been held together long enough, puts the pointer in the middle of a screen.
     sealed class TrayApp : IDisposable
     {
-        const string AppName = "CentrarRaton";
+        const string AppName = "Mousetrap";
         const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
         static readonly bool Spanish = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "es";
 
@@ -56,8 +56,8 @@ namespace CentrarRaton
 
             string seconds = (settings.HoldMs / 1000.0).ToString("0.#");
             tray.Icon = icon;
-            tray.Text = T("Centrar ratón: mantén los dos botones " + seconds + " s",
-                          "Hold both mouse buttons for " + seconds + " s to centre the pointer");
+            tray.Text = T("Mousetrap: mantén los dos botones " + seconds + " s",
+                          "Mousetrap: hold both mouse buttons for " + seconds + " s");
             tray.ContextMenuStrip = menu;
             tray.Visible = true;
             // An empty menu cancels its own opening unless told otherwise.
