@@ -6,8 +6,9 @@
 
 ![C#](https://img.shields.io/badge/C%23-.NET%20Framework%204-512BD4?logo=dotnet&logoColor=white)
 ![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4)
-![Size](https://img.shields.io/badge/exe-42%20KB-FF9600)
+![Size](https://img.shields.io/badge/exe-53%20KB-FF9600)
 ![License](https://img.shields.io/badge/license-GPL--3.0-3DDC84)
+[![Build](https://github.com/bmp95/mousetrap/actions/workflows/build.yml/badge.svg)](https://github.com/bmp95/mousetrap/actions/workflows/build.yml)
 
 [**🇬🇧 English**](#-english) · [**🇪🇸 Español**](#-español)
 
@@ -33,7 +34,7 @@ Three screens, one pointer and no idea where it went. We all know the ritual: sh
 | 🟠 **Orange disc** | Marks the spot for a moment so your eye finds it first time |
 | 🤫 **No ghost clicks** | Letting go of the buttons clicks nothing and opens no context menu on whatever was underneath |
 | 🖥️ **Any screen layout** | Different zoom levels, portrait screens, screens sitting higher than the main one: the centre is the centre |
-| 🪶 **A single 42 KB exe** | No installer, no admin rights, no network connections |
+| 🪶 **A single 53 KB exe** | No installer, no admin rights, no network connections |
 
 ### ⬇️ Install
 
@@ -108,6 +109,8 @@ language=auto
 | `test.cmd` | 43 logic tests: hold detection, keyboard shortcuts, configuration and screen choice |
 | `test.cmd e2e` | The above plus an end-to-end test against the real `.exe` |
 
+Every change is built and tested on GitHub Actions, and the exe attached to each release is the one built there, not one from anybody's PC.
+
 The end-to-end test presses buttons and keys with synthetic input over a window of its own and checks where the pointer ends up, so it **takes over the mouse and the keyboard for about 30 seconds**. Exit the app first if it is running.
 
 > 😄 Yes: to test an app that moves your mouse, you have to let something move your mouse.
@@ -150,7 +153,7 @@ Tres pantallas, un puntero y ni idea de dónde está. Todos conocemos el ritual:
 | 🟠 **Disco naranja** | Marca el sitio un instante para que el ojo lo encuentre a la primera |
 | 🤫 **Sin clics fantasma** | Al soltar los botones no se pulsa nada ni se abre ningún menú contextual en lo que hubiera debajo |
 | 🖥️ **Pantallas de todo tipo** | Con distinto zoom, en vertical o colocadas más arriba que la principal: el centro es el centro |
-| 🪶 **Un solo exe de 42 KB** | Sin instalador, sin permisos de administrador y sin conectarse a nada |
+| 🪶 **Un solo exe de 53 KB** | Sin instalador, sin permisos de administrador y sin conectarse a nada |
 
 ### ⬇️ Instalación
 
@@ -222,6 +225,8 @@ language=auto
 |---|---|
 | `test.cmd` | 43 tests de la lógica: detección de la pulsación, atajos de teclado, configuración y elección de pantalla |
 | `test.cmd e2e` | Lo anterior y una prueba de extremo a extremo contra el `.exe` real |
+
+Cada cambio se compila y se prueba en GitHub Actions, y el exe de cada release es el que sale de ahí, no el de ningún ordenador particular.
 
 La prueba de extremo a extremo pulsa botones y teclas con entrada sintética sobre una ventana propia y comprueba dónde acaba el puntero, así que **toma el control del ratón y del teclado unos 30 segundos**. Cierra antes la aplicación si la tienes abierta.
 
