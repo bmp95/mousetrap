@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using Microsoft.Win32;
 
 // End-to-end check against the real exe, the real mouse and the real keyboard. It
 // presses buttons and keys with synthetic input over a window of its own and watches
@@ -89,10 +90,14 @@ static class E2E
         }
 
         Point before = Cursor.Position;
+        string startup = StartupEntry();
         try
         {
             Scenario("Default settings: hold both buttons for 3 s", null, HoldingThreeSecondsJumpsToTheMainScreen);
             Scenario("Default settings: let go after 1.5 s", null, LettingGoEarlyLeavesThePointerAlone);
+            // Only the installed app sets itself up on its first run; one run with --config must not.
+            Check("no settings file was written on its own", !File.Exists(config), config);
+            Check("the Windows startup list was left alone", StartupEntry() == startup, StartupEntry());
             foreach (Screen screen in Screen.AllScreens)
             {
                 if (screen.Primary) continue;
@@ -115,6 +120,12 @@ static class E2E
         Console.WriteLine();
         Console.WriteLine(failed == 0 ? "E2E passed" : "E2E FAILED (" + failed + ")");
         return failed == 0 ? 0 : 1;
+    }
+
+    static string StartupEntry()
+    {
+        using (RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run"))
+            return key == null ? null : key.GetValue("Mousetrap") as string;
     }
 
     static void Scenario(string title, string configText, Action<Probe, Point> body)

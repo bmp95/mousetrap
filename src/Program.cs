@@ -21,11 +21,13 @@ namespace Mousetrap
             using (new Mutex(true, "Mousetrap.SingleInstance", out first))
             {
                 if (!first) return;
-                string configPath = args.Length == 2 && args[0] == "--config"
-                    ? args[1]
-                    : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Mousetrap", "config.ini");
+                // --config is for running it by hand or under test, away from the installed copy.
+                bool installed = !(args.Length == 2 && args[0] == "--config");
+                string configPath = installed
+                    ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Mousetrap", "config.ini")
+                    : args[1];
                 Application.EnableVisualStyles();
-                using (new TrayApp(configPath)) Application.Run();
+                using (new TrayApp(configPath, installed)) Application.Run();
             }
         }
     }
@@ -64,9 +66,11 @@ namespace Mousetrap
         HoldDetector mouseHold, keysHold;
         SettingsForm window;
 
-        public TrayApp(string configPath)
+        public TrayApp(string configPath, bool installed)
         {
             this.configPath = configPath;
+            // No settings saved yet means this is the first time the installed app runs.
+            bool firstRun = installed && !File.Exists(configPath);
             settings = Settings.Parse(ReadOrEmpty(configPath));
             Lang.Use(settings);
 
@@ -80,10 +84,23 @@ namespace Mousetrap
             if (!PutToWork())
                 tray.ShowBalloonTip(8000, AppName, T("Windows u otro programa ya usa " + settings.Hotkey + ". Elige otro atajo en Ajustes.",
                                                      "Windows or another program already uses " + settings.Hotkey + ". Pick another shortcut in Settings."), ToolTipIcon.Warning);
+            if (firstRun) SettleIn();
 
             timer.Interval = 50;
             timer.Tick += delegate { Tick(); };
             timer.Start();
+        }
+
+        // On its first run the app sets itself to start with Windows, and says so: one
+        // that is gone after a restart looks broken. Saving the settings is what marks
+        // the first run as over, so unticking the option later is respected.
+        void SettleIn()
+        {
+            try { SetStartsWithWindows(true); }
+            catch (Exception) { return; }   // a PC that forbids it: carry on without, and try again next time
+            Save();
+            tray.ShowBalloonTip(10000, AppName, T("Mousetrap arrancará con Windows a partir de ahora. Para cambiarlo, haz clic derecho en este icono.",
+                                                  "Mousetrap will start with Windows from now on. To change that, right-click this icon."), ToolTipIcon.Info);
         }
 
         // Makes the current settings take effect: hold time, shortcut and tooltip.
