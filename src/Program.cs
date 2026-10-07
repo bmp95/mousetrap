@@ -36,12 +36,18 @@ namespace Mousetrap
     static class Lang
     {
         static bool spanish;
+        static CultureInfo numbers = CultureInfo.CurrentCulture;
 
         // The settings choose the language; left on "auto", the one Windows is in does.
         public static void Use(Settings settings)
         {
             spanish = settings.UsesSpanish(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName);
+            // A language picked by hand brings its decimal comma or point with it.
+            numbers = settings.Language == Settings.Auto ? CultureInfo.CurrentCulture
+                : spanish ? new CultureInfo("es-ES") : CultureInfo.InvariantCulture;
         }
+
+        public static string Number(double value, string format) { return value.ToString(format, numbers); }
 
         public static string T(string spanish, string english) { return Lang.spanish ? spanish : english; }
     }
@@ -62,7 +68,7 @@ namespace Mousetrap
         readonly NotifyIcon tray = new NotifyIcon();
         readonly ContextMenuStrip menu = new ContextMenuStrip();
         readonly System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
-        readonly Icon icon = DrawIcon();
+        readonly Icon icon = Native.AppIcon(SystemInformation.SmallIconSize.Width);
         HoldDetector mouseHold, keysHold;
         SettingsForm window;
 
@@ -115,7 +121,7 @@ namespace Mousetrap
 
         string Tooltip()
         {
-            string time = (settings.HoldMs / 1000.0).ToString("0.#") + " s";
+            string time = Lang.Number(settings.HoldMs / 1000.0, "0.#") + " s";
             string keys = settings.Hotkey == null ? null : settings.Hotkey.ToString();
             string text =
                 keys == null ? T("Mousetrap: mantén los dos botones " + time, "Mousetrap: hold both mouse buttons for " + time)
@@ -261,24 +267,6 @@ namespace Mousetrap
             {
                 if (on) key.SetValue(AppName, "\"" + Application.ExecutablePath + "\"");
                 else key.DeleteValue(AppName, false);
-            }
-        }
-
-        static Icon DrawIcon()
-        {
-            using (Bitmap bitmap = new Bitmap(32, 32))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                using (Pen ring = new Pen(Halo.Colour, 4))
-                using (Brush dot = new SolidBrush(Halo.Colour))
-                {
-                    g.SmoothingMode = SmoothingMode.AntiAlias;
-                    g.DrawEllipse(ring, 3, 3, 26, 26);
-                    g.FillEllipse(dot, 11, 11, 10, 10);
-                }
-                IntPtr handle = bitmap.GetHicon();
-                try { using (Icon borrowed = Icon.FromHandle(handle)) return (Icon)borrowed.Clone(); }
-                finally { Native.DestroyIcon(handle); }
             }
         }
 
@@ -437,7 +425,18 @@ namespace Mousetrap
 
         [DllImport("user32.dll")] static extern short GetAsyncKeyState(int vk);
         [DllImport("user32.dll")] public static extern bool SetCursorPos(int x, int y);
-        [DllImport("user32.dll")] public static extern bool DestroyIcon(IntPtr icon);
+        [DllImport("user32.dll")] static extern IntPtr LoadImage(IntPtr module, IntPtr name, uint type, int width, int height, uint flags);
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode)] static extern IntPtr GetModuleHandle(string name);
+
+        // The icon built into the exe (assets\mousetrap.ico), at the size asked for:
+        // Windows picks the closest drawing in it and scales that.
+        public static Icon AppIcon(int size)
+        {
+            const uint IMAGE_ICON = 1;
+            // 32512 is the number the C# compiler files the application icon under.
+            IntPtr handle = LoadImage(GetModuleHandle(null), (IntPtr)32512, IMAGE_ICON, size, size, 0);
+            return handle == IntPtr.Zero ? SystemIcons.Application : Icon.FromHandle(handle);
+        }
         [DllImport("user32.dll")] static extern bool GetGUIThreadInfo(uint thread, ref GUITHREADINFO info);
         [DllImport("user32.dll")] static extern IntPtr SendMessageTimeout(IntPtr hwnd, int msg, IntPtr w, IntPtr l, uint flags, uint timeoutMs, out IntPtr result);
 

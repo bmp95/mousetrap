@@ -6,7 +6,7 @@
 
 ![C#](https://img.shields.io/badge/C%23-.NET%20Framework%204-512BD4?logo=dotnet&logoColor=white)
 ![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4)
-![Size](https://img.shields.io/badge/exe-53%20KB-FF9600)
+![Size](https://img.shields.io/badge/exe-64%20KB-FF9600)
 ![License](https://img.shields.io/badge/license-GPL--3.0-3DDC84)
 [![Build](https://github.com/bmp95/mousetrap/actions/workflows/build.yml/badge.svg)](https://github.com/bmp95/mousetrap/actions/workflows/build.yml)
 
@@ -34,21 +34,21 @@ Three screens, one pointer and no idea where it went. We all know the ritual: sh
 | 🟠 **Orange disc** | Marks the spot for a moment so your eye finds it first time |
 | 🤫 **No ghost clicks** | Letting go of the buttons clicks nothing and opens no context menu on whatever was underneath |
 | 🖥️ **Any screen layout** | Different zoom levels, portrait screens, screens sitting higher than the main one: the centre is the centre |
-| 🪶 **A single 53 KB exe** | No installer, no admin rights, no network connections |
+| 🪶 **A single 64 KB exe** | No installer, no admin rights, no network connections |
 
 ### ⬇️ Install
 
 1. Download [**Mousetrap.exe**](https://github.com/bmp95/mousetrap/releases/latest/download/Mousetrap.exe) from the [latest release](https://github.com/bmp95/mousetrap/releases/latest). It is a single file; there is no installer.
 2. Put it somewhere it can stay, such as `Documents\Mousetrap`, and double-click it.
 3. The first time, Windows may say it protected your PC, because the exe isn't signed: choose **More info → Run anyway**.
-4. An orange circle appears in the system tray, next to the clock. If you don't see it, it is behind the **^** arrow of hidden icons; drag it onto the taskbar to keep it in view.
-5. From then on it starts with Windows, and a notification says so the first time. If you would rather start it yourself, right-click the orange circle and untick **Start with Windows**.
+4. The Mousetrap icon, an orange box propped up on a stick, appears in the system tray, next to the clock. If you don't see it, it is behind the **^** arrow of hidden icons; drag it onto the taskbar to keep it in view.
+5. From then on it starts with Windows, and a notification says so the first time. If you would rather start it yourself, right-click the icon and untick **Start with Windows**.
 
 It needs Windows 10 or 11 and nothing else. To remove it, untick **Start with Windows**, choose **Exit** in the same menu and delete the file; your settings are in `%APPDATA%\Mousetrap`.
 
 ### 🖱️ Usage
 
-1. Check that Mousetrap is running: its orange circle is in the system tray, next to the clock.
+1. Check that Mousetrap is running: its icon is in the system tray, next to the clock.
 2. Hold both mouse buttons for 3 seconds.
 3. The pointer shows up in the middle of the main screen.
 
@@ -153,21 +153,21 @@ Tres pantallas, un puntero y ni idea de dónde está. Todos conocemos el ritual:
 | 🟠 **Disco naranja** | Marca el sitio un instante para que el ojo lo encuentre a la primera |
 | 🤫 **Sin clics fantasma** | Al soltar los botones no se pulsa nada ni se abre ningún menú contextual en lo que hubiera debajo |
 | 🖥️ **Pantallas de todo tipo** | Con distinto zoom, en vertical o colocadas más arriba que la principal: el centro es el centro |
-| 🪶 **Un solo exe de 53 KB** | Sin instalador, sin permisos de administrador y sin conectarse a nada |
+| 🪶 **Un solo exe de 64 KB** | Sin instalador, sin permisos de administrador y sin conectarse a nada |
 
 ### ⬇️ Instalación
 
 1. Descarga [**Mousetrap.exe**](https://github.com/bmp95/mousetrap/releases/latest/download/Mousetrap.exe) de la [última release](https://github.com/bmp95/mousetrap/releases/latest). Es un solo fichero; no hay instalador.
 2. Guárdalo en un sitio donde se pueda quedar, por ejemplo `Documentos\Mousetrap`, y haz doble clic en él.
 3. La primera vez Windows puede decir que protegió tu PC, porque el exe no está firmado: pulsa **Más información → Ejecutar de todas formas**.
-4. Aparece un círculo naranja en la bandeja del sistema, junto al reloj. Si no lo ves, está detrás de la flecha **^** de iconos ocultos; arrástralo a la barra de tareas para tenerlo a la vista.
-5. A partir de ahí arranca con Windows, y la primera vez lo avisa con una notificación. Si prefieres abrirlo tú, haz clic derecho en el círculo naranja y desmarca **Iniciar con Windows**.
+4. El icono de Mousetrap, una caja naranja apoyada en un palo, aparece en la bandeja del sistema, junto al reloj. Si no lo ves, está detrás de la flecha **^** de iconos ocultos; arrástralo a la barra de tareas para tenerlo a la vista.
+5. A partir de ahí arranca con Windows, y la primera vez lo avisa con una notificación. Si prefieres abrirlo tú, haz clic derecho en el icono y desmarca **Iniciar con Windows**.
 
 Solo necesita Windows 10 u 11. Para quitarlo, desmarca **Iniciar con Windows**, elige **Salir** en ese mismo menú y borra el fichero; tus ajustes están en `%APPDATA%\Mousetrap`.
 
 ### 🖱️ Uso
 
-1. Comprueba que Mousetrap está en marcha: su círculo naranja está en la bandeja del sistema, junto al reloj.
+1. Comprueba que Mousetrap está en marcha: su icono está en la bandeja del sistema, junto al reloj.
 2. Mantén pulsados los dos botones del ratón durante 3 segundos.
 3. El puntero aparece en el centro de la pantalla principal.
 

@@ -21,6 +21,9 @@ namespace Mousetrap
         public static readonly Color Accent = Halo.Colour;
         public static readonly Color Warning = Color.FromArgb(186, 66, 18);
 
+        // The app icon, large, for the head of the window.
+        public static readonly Bitmap Emblem = Native.AppIcon(256).ToBitmap();
+
         public static readonly Font Title = Pixels("Georgia", 27);
         public static readonly Font Figure = Pixels("Segoe UI Semibold", 22);
         public static readonly Font Body = Pixels("Segoe UI", 15);
@@ -46,6 +49,7 @@ namespace Mousetrap
         {
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
             g.TextRenderingHint = TextRenderingHint.ClearTypeGridFit;
             g.ScaleTransform(zoom, zoom);
         }
@@ -665,9 +669,7 @@ namespace Mousetrap
             Graphics g = e.Graphics;
             Look.Prepare(g, zoom);
 
-            // The tray icon, large.
-            using (Pen ring = new Pen(Look.Accent, 5)) g.DrawEllipse(ring, 27, 27, 34, 34);
-            using (Brush dot = new SolidBrush(Look.Accent)) g.FillEllipse(dot, 37.5f, 37.5f, 13, 13);
+            g.DrawImage(Look.Emblem, new RectangleF(20, 20, 50, 50));
             Look.Text(g, "Mousetrap", Look.Title, Look.Ink, 76, 22);
             Look.Text(g, Lang.T("Tú decides cómo llamar al puntero.", "You decide how to call your pointer."), Look.Small, Look.Soft, 77, 57);
 
@@ -680,7 +682,7 @@ namespace Mousetrap
             Look.Wrapped(g, note, Look.Small, complaint != null ? Look.Warning : Look.Soft, new RectangleF(44, 284, 332, 36));
 
             Card(g, Holding, Lang.T("CUÁNTO MANTENERLO", "HOW LONG TO HOLD"));
-            string seconds = (hold.Value / 10.0).ToString("0.0") + " s";
+            string seconds = Lang.Number(hold.Value / 10.0, "0.0") + " s";
             Look.Text(g, seconds, Look.Figure, Look.Ink, 376 - Look.Width(g, seconds, Look.Figure), 351);
 
             Card(g, Speaking, null);
