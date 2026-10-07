@@ -6,7 +6,7 @@
 
 ![C#](https://img.shields.io/badge/C%23-.NET%20Framework%204-512BD4?logo=dotnet&logoColor=white)
 ![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4)
-![Size](https://img.shields.io/badge/exe-17%20KB-FF9600)
+![Size](https://img.shields.io/badge/exe-39%20KB-FF9600)
 ![License](https://img.shields.io/badge/license-GPL--3.0-3DDC84)
 
 [**🇪🇸 Español**](#-español) · [**🇬🇧 English**](#-english)
@@ -25,12 +25,13 @@ Tres pantallas, un puntero y ni idea de dónde está. Todos conocemos el ritual:
 
 | Mecanismo | Qué hace |
 |---|---|
-| ⏱️ **Dos botones, 3 segundos** | Izquierdo y derecho a la vez: un gesto que casi nunca se hace por accidente. Si a ti sí te pasa, el tiempo se cambia |
+| ⏱️ **Dos botones, 3 segundos** | Izquierdo y derecho a la vez: un gesto que casi nunca se hace por accidente. Si a ti sí te pasa, el tiempo se cambia en Ajustes |
+| ⌨️ **O tu propio atajo** | Si prefieres el teclado, graba la combinación que quieras (Ctrl + Alt + M, por ejemplo) pulsándola una vez. Funciona junto al gesto del ratón o en su lugar |
 | 🎯 **Salto al centro** | A la pantalla principal, a la pantalla donde ya esté el puntero o a una concreta; se elige desde la bandeja |
 | 🟠 **Disco naranja** | Marca el sitio un instante para que el ojo lo encuentre a la primera |
 | 🤫 **Sin clics fantasma** | Al soltar los botones no se pulsa nada ni se abre ningún menú contextual en lo que hubiera debajo |
 | 🖥️ **Pantallas de todo tipo** | Con distinto zoom, en vertical o colocadas más arriba que la principal: el centro es el centro |
-| 🪶 **Un solo exe de 17 KB** | Sin instalador, sin permisos de administrador y sin conectarse a nada |
+| 🪶 **Un solo exe de 39 KB** | Sin instalador, sin permisos de administrador y sin conectarse a nada |
 
 ### 🖱️ Uso
 
@@ -45,18 +46,31 @@ Con el botón derecho sobre el icono se elige el destino y poco más:
 | La pantalla principal | Siempre al centro de la principal (por defecto) |
 | La pantalla donde ya esté el puntero | Lo centra sin cambiarlo de pantalla |
 | Pantalla 1, 2, 3… | Siempre a esa pantalla; si la desenchufas, vuelve a la principal |
+| Ajustes… | Abre la ventana de ajustes; también se abre con un clic en el icono |
 | Iniciar con Windows | Arranca sola al iniciar sesión |
 | Salir | Cierra la ratonera |
 
-### 🎛️ Configuración
+### 🎛️ Ajustes
 
-Lo que elijas en el menú se guarda en `%APPDATA%\Mousetrap\config.ini`. Ahí también se cambia el tiempo de pulsación; reinicia la aplicación después de editarlo.
+<p align="center"><img src="docs/ajustes.png" alt="Ventana de ajustes de Mousetrap" width="340"></p>
+
+«Ajustes…» en el menú de la bandeja abre una ventana con lo único que hay que decidir:
+
+- **Cómo llamarlo**: con los dos botones del ratón, con un atajo de teclado o con las dos cosas.
+- **El atajo**: haz clic en el recuadro y pulsa las teclas. Lleva Ctrl o Alt y una tecla más. Si la combinación ya la usa otro programa, o en tu teclado escribe un carácter (Ctrl + Alt + 2 es la @ en un teclado español), la ventana lo dice y no la guarda.
+- **Cuánto mantenerlo**: de 0,5 a 10 segundos.
+
+Se aplica al guardar, sin reiniciar. Todo queda en `%APPDATA%\Mousetrap\config.ini`, que también se puede editar a mano; en ese caso, reinicia la aplicación después.
 
 ```ini
 # primary | cursor | nombre de la pantalla, por ejemplo \\.\DISPLAY2
 target=primary
-# milisegundos que hay que mantener los dos botones (mínimo 500)
+# milisegundos que hay que mantener los botones o el atajo (mínimo 500)
 hold_ms=3000
+# on | off: si los dos botones del ratón llaman al puntero
+mouse=on
+# atajo de teclado que también lo llama; vacío para no usar ninguno
+hotkey=Ctrl+Alt+M
 ```
 
 ### 🎯 Decisiones técnicas
@@ -65,6 +79,7 @@ hold_ms=3000
 |---|---|
 | 🪝 **Sin ganchos de ratón ni de teclado** | Un temporizador pregunta 20 veces por segundo si los dos botones están pulsados (`GetAsyncKeyState`). Nada se interpone entre tu ratón y el resto de programas |
 | 🟠 **El disco también trabaja** | Aparece justo debajo del puntero y es él quien recibe las sueltas de los botones; por eso no llegan a la ventana que haya debajo |
+| ⌨️ **El atajo lo guarda Windows** | Se registra como atajo global del sistema (`RegisterHotKey`): mientras lo mantienes, Windows se lo queda y no llega al programa que tengas delante. Sigue sin haber ganchos |
 | ✋ **La pulsación a medias se cancela** | Antes de saltar avisa a la ventana que tenía el clic en curso (`WM_CANCELMODE`), como hace Windows cuando aparece un diálogo; así el salto no se toma por un arrastre |
 | 📐 **DPI por monitor** | Sin ello, en pantallas con un zoom distinto al de la principal las coordenadas se escalan y el puntero cae descentrado |
 | 🧰 **Compilado con lo que trae Windows** | El compilador de C# de .NET Framework 4 viene de serie en Windows 10 y 11: ni SDK, ni NuGet, ni nada que instalar |
@@ -73,10 +88,10 @@ hold_ms=3000
 
 | Comando | Qué comprueba |
 |---|---|
-| `test.cmd` | 26 tests de la lógica: detección de la pulsación, configuración y elección de pantalla |
+| `test.cmd` | 39 tests de la lógica: detección de la pulsación, atajos de teclado, configuración y elección de pantalla |
 | `test.cmd e2e` | Lo anterior y una prueba de extremo a extremo contra el `.exe` real |
 
-La prueba de extremo a extremo pulsa los botones con entrada sintética sobre una ventana propia y comprueba dónde acaba el puntero, así que **toma el control del ratón unos 20 segundos**. Cierra antes la aplicación si la tienes abierta.
+La prueba de extremo a extremo pulsa botones y teclas con entrada sintética sobre una ventana propia y comprueba dónde acaba el puntero, así que **toma el control del ratón y del teclado unos 30 segundos**. Cierra antes la aplicación si la tienes abierta.
 
 > 😄 Sí: para probar una app que mueve el ratón hay que dejar que te muevan el ratón.
 
@@ -112,12 +127,13 @@ Three screens, one pointer and no idea where it went. We all know the ritual: sh
 
 | Mechanism | What it does |
 |---|---|
-| ⏱️ **Two buttons, 3 seconds** | Left and right together: a gesture you almost never make by accident. If you do, the hold time is configurable |
+| ⏱️ **Two buttons, 3 seconds** | Left and right together: a gesture you almost never make by accident. If you do, the hold time can be changed in Settings |
+| ⌨️ **Or your own shortcut** | If you prefer the keyboard, record whatever combination you like (Ctrl + Alt + M, say) by pressing it once. It works alongside the mouse gesture or instead of it |
 | 🎯 **Jump to the centre** | Of the main screen, the screen the pointer is already on, or a specific one; you pick from the tray |
 | 🟠 **Orange disc** | Marks the spot for a moment so your eye finds it first time |
 | 🤫 **No ghost clicks** | Letting go of the buttons clicks nothing and opens no context menu on whatever was underneath |
 | 🖥️ **Any screen layout** | Different zoom levels, portrait screens, screens sitting higher than the main one: the centre is the centre |
-| 🪶 **A single 17 KB exe** | No installer, no admin rights, no network connections |
+| 🪶 **A single 39 KB exe** | No installer, no admin rights, no network connections |
 
 ### 🖱️ Usage
 
@@ -132,20 +148,33 @@ Right-click the tray icon to choose the destination, and not much else:
 | The main screen | Always the middle of the main screen (default) |
 | The screen the pointer is already on | Centres it without changing screens |
 | Screen 1, 2, 3… | Always that screen; if it gets unplugged, falls back to the main one |
+| Settings… | Opens the settings window; clicking the icon opens it too |
 | Start with Windows | Launches on sign-in |
 | Exit | Closes the trap |
 
 The menu is shown in Spanish on Spanish systems and in English everywhere else.
 
-### 🎛️ Configuration
+### 🎛️ Settings
 
-Whatever you pick in the menu is saved to `%APPDATA%\Mousetrap\config.ini`. The hold time lives there too; restart the app after editing it.
+<p align="center"><img src="docs/settings.png" alt="Mousetrap settings window" width="340"></p>
+
+"Settings…" in the tray menu opens a window with the only things there are to decide:
+
+- **How to call it**: with both mouse buttons, with a keyboard shortcut, or with both.
+- **The shortcut**: click the box and press the keys. It takes Ctrl or Alt plus one more key. If another program already uses the combination, or it types a character on your keyboard (Ctrl + Alt + 2 is @ on a Spanish one), the window says so and won't save it.
+- **How long to hold**: from 0.5 to 10 seconds.
+
+It takes effect on Save, no restart needed. Everything lands in `%APPDATA%\Mousetrap\config.ini`, which you can also edit by hand; if you do, restart the app afterwards.
 
 ```ini
 # primary | cursor | a display name such as \\.\DISPLAY2
 target=primary
-# milliseconds both buttons must be held (minimum 500)
+# milliseconds the buttons or the shortcut must be held (minimum 500)
 hold_ms=3000
+# on | off: whether both mouse buttons call the pointer
+mouse=on
+# a keyboard shortcut that also calls it; empty for none
+hotkey=Ctrl+Alt+M
 ```
 
 ### 🎯 Technical decisions
@@ -154,6 +183,7 @@ hold_ms=3000
 |---|---|
 | 🪝 **No mouse or keyboard hooks** | A timer asks 20 times a second whether both buttons are down (`GetAsyncKeyState`). Nothing sits between your mouse and the rest of your programs |
 | 🟠 **The disc earns its keep** | It appears right under the pointer and is the one that receives the button releases, so they never reach the window underneath |
+| ⌨️ **Windows keeps the shortcut** | It is registered as a system-wide hot key (`RegisterHotKey`): while you hold it, Windows keeps it and it never reaches the program in front. Still no hooks |
 | ✋ **The half-finished press is cancelled** | Before jumping, it tells the window that had the press in progress to give up (`WM_CANCELMODE`), as Windows does when a dialog pops up, so the jump isn't taken for a drag |
 | 📐 **Per-monitor DPI** | Without it, coordinates get scaled on screens whose zoom differs from the main one and the pointer lands off-centre |
 | 🧰 **Built with what Windows ships** | The .NET Framework 4 C# compiler comes with Windows 10 and 11: no SDK, no NuGet, nothing to install |
@@ -162,10 +192,10 @@ hold_ms=3000
 
 | Command | What it checks |
 |---|---|
-| `test.cmd` | 26 logic tests: hold detection, configuration and screen choice |
+| `test.cmd` | 39 logic tests: hold detection, keyboard shortcuts, configuration and screen choice |
 | `test.cmd e2e` | The above plus an end-to-end test against the real `.exe` |
 
-The end-to-end test presses the buttons with synthetic input over a window of its own and checks where the pointer ends up, so it **takes over the mouse for about 20 seconds**. Exit the app first if it is running.
+The end-to-end test presses buttons and keys with synthetic input over a window of its own and checks where the pointer ends up, so it **takes over the mouse and the keyboard for about 30 seconds**. Exit the app first if it is running.
 
 > 😄 Yes: to test an app that moves your mouse, you have to let something move your mouse.
 
