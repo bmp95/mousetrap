@@ -55,6 +55,17 @@ static class CoreTests
             Equal(true, d.Update(true, true, 4200));
         });
 
+        Test("any held state can be timed, not only the two buttons", delegate
+        {
+            HoldDetector d = new HoldDetector(1000);
+            Equal(false, d.Update(true, 0));
+            Equal(true, d.Update(true, 1000));
+            Equal(false, d.Update(true, 1050));
+            Equal(false, d.Update(false, 1100));
+            Equal(false, d.Update(true, 1150));
+            Equal(true, d.Update(true, 2150));
+        });
+
         Console.WriteLine("Settings");
         Test("no config file means primary screen and 3 s", delegate
         {
@@ -95,6 +106,86 @@ static class CoreTests
             Settings back = Settings.Parse(s.ToText());
             Equal("\\\\.\\DISPLAY1", back.Target);
             Equal(4000, back.HoldMs);
+        });
+
+        Test("the mouse gesture is on and there is no shortcut unless the file says so", delegate
+        {
+            Settings s = Settings.Parse("");
+            Equal(true, s.Mouse);
+            Equal<Hotkey>(null, s.Hotkey);
+        });
+        Test("reads the mouse switch and the shortcut", delegate
+        {
+            Settings s = Settings.Parse("mouse=off\nhotkey=Ctrl+Alt+M\n");
+            Equal(false, s.Mouse);
+            Equal("Ctrl+Alt+M", s.Hotkey.ToString());
+        });
+        Test("a shortcut that cannot be used is ignored", delegate
+        {
+            Equal<Hotkey>(null, Settings.Parse("hotkey=M\n").Hotkey);
+            Equal<Hotkey>(null, Settings.Parse("hotkey=banana\n").Hotkey);
+            Equal<Hotkey>(null, Settings.Parse("hotkey=\n").Hotkey);
+        });
+        Test("with the mouse off and no usable shortcut the mouse gesture comes back", delegate
+        {
+            Equal(true, Settings.Parse("mouse=off\n").Mouse);
+            Equal(true, Settings.Parse("mouse=off\nhotkey=Shift+M\n").Mouse);
+        });
+        Test("the mouse switch and the shortcut survive saving", delegate
+        {
+            Settings s = new Settings();
+            s.Mouse = false;
+            s.Hotkey = Hotkey.Parse("Ctrl+Shift+F9");
+            Settings back = Settings.Parse(s.ToText());
+            Equal(false, back.Mouse);
+            Equal("Ctrl+Shift+F9", back.Hotkey.ToString());
+        });
+        Test("saving without a shortcut reads back as no shortcut", delegate
+        {
+            Settings back = Settings.Parse(new Settings().ToText());
+            Equal(true, back.Mouse);
+            Equal<Hotkey>(null, back.Hotkey);
+        });
+
+        Console.WriteLine("Hotkey");
+        Test("reads modifiers in any order, case and spacing, and writes them back tidy", delegate
+        {
+            Equal("Ctrl+Alt+M", Hotkey.Parse(" alt + CTRL + m ").ToString());
+            Equal("Ctrl+Alt+Shift+F12", Hotkey.Parse("shift+f12+alt+ctrl").ToString());
+        });
+        Test("knows letters, digits, function keys and a few named keys", delegate
+        {
+            Equal(0x4D, Hotkey.Parse("Ctrl+Alt+M").Key);
+            Equal(0x37, Hotkey.Parse("Ctrl+Alt+7").Key);
+            Equal(0x78, Hotkey.Parse("Alt+F9").Key);
+            Equal(0x20, Hotkey.Parse("Ctrl+Space").Key);
+            Equal(0x25, Hotkey.Parse("Ctrl+Alt+Left").Key);
+        });
+        Test("needs Ctrl or Alt, or the key could no longer be typed", delegate
+        {
+            Equal(HotkeyProblem.NeedsCtrlOrAlt, new Hotkey(false, false, false, 0x4D).Problem);
+            Equal(HotkeyProblem.NeedsCtrlOrAlt, new Hotkey(false, false, true, 0x4D).Problem);
+            Equal(HotkeyProblem.None, new Hotkey(true, false, true, 0x4D).Problem);
+            Equal<Hotkey>(null, Hotkey.Parse("Shift+M"));
+        });
+        Test("needs exactly one key the app knows", delegate
+        {
+            Equal(HotkeyProblem.UnknownKey, new Hotkey(true, true, false, 0x1B).Problem);
+            Equal<Hotkey>(null, Hotkey.Parse("Ctrl+Alt"));
+            Equal<Hotkey>(null, Hotkey.Parse("Ctrl+Alt+M+N"));
+            Equal<Hotkey>(null, Hotkey.Parse(""));
+            Equal<Hotkey>(null, Hotkey.Parse(null));
+        });
+        Test("refuses shortcuts everybody already uses", delegate
+        {
+            Equal(HotkeyProblem.TooCommon, new Hotkey(true, false, false, 0x43).Problem);
+            Equal(HotkeyProblem.TooCommon, new Hotkey(false, true, false, 0x73).Problem);
+            Equal(HotkeyProblem.None, new Hotkey(true, true, false, 0x43).Problem);
+            Equal<Hotkey>(null, Hotkey.Parse("Ctrl+C"));
+        });
+        Test("lists its keys one by one, ready to be drawn as keycaps", delegate
+        {
+            Equal("Ctrl|Shift|PageDown", string.Join("|", Hotkey.Parse("Ctrl+Shift+PageDown").Parts));
         });
 
         Console.WriteLine("Targeting");

@@ -1,6 +1,6 @@
 @echo off
 rem Unit tests:            test.cmd
-rem Plus end-to-end test:  test.cmd e2e   (takes over the mouse for ~15 s)
+rem Plus end-to-end test:  test.cmd e2e   (takes over the mouse and keyboard for ~30 s)
 setlocal
 cd /d "%~dp0"
 set CSC=%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe

@@ -30,50 +30,117 @@ namespace Mousetrap
         }
     }
 
-    // Lives in the notification area, watches the two mouse buttons and, when they
-    // have been held together long enough, puts the pointer in the middle of a screen.
+    static class Lang
+    {
+        static readonly bool Spanish = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "es";
+
+        public static string T(string spanish, string english) { return Spanish ? spanish : english; }
+    }
+
+    // Lives in the notification area, watches the two mouse buttons and the keyboard
+    // shortcut and, when either has been held long enough, puts the pointer in the
+    // middle of a screen.
     sealed class TrayApp : IDisposable
     {
         const string AppName = "Mousetrap";
         const string RunKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
-        static readonly bool Spanish = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "es";
 
         readonly string configPath;
         readonly Settings settings;
-        readonly HoldDetector detector;
         readonly Stopwatch clock = Stopwatch.StartNew();
         readonly Halo halo = new Halo();
+        readonly Shortcut shortcut = new Shortcut();
         readonly NotifyIcon tray = new NotifyIcon();
         readonly ContextMenuStrip menu = new ContextMenuStrip();
         readonly System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
         readonly Icon icon = DrawIcon();
+        HoldDetector mouseHold, keysHold;
+        SettingsForm window;
 
         public TrayApp(string configPath)
         {
             this.configPath = configPath;
             settings = Settings.Parse(ReadOrEmpty(configPath));
-            detector = new HoldDetector(settings.HoldMs);
 
-            string seconds = (settings.HoldMs / 1000.0).ToString("0.#");
             tray.Icon = icon;
-            tray.Text = T("Mousetrap: mantén los dos botones " + seconds + " s",
-                          "Mousetrap: hold both mouse buttons for " + seconds + " s");
             tray.ContextMenuStrip = menu;
+            tray.MouseClick += (sender, e) => { if (e.Button == MouseButtons.Left) OpenSettings(); };
             tray.Visible = true;
             // An empty menu cancels its own opening unless told otherwise.
             menu.Opening += (sender, e) => { BuildMenu(); e.Cancel = false; };
+
+            if (!PutToWork())
+                tray.ShowBalloonTip(8000, AppName, T("Windows u otro programa ya usa " + settings.Hotkey + ". Elige otro atajo en Ajustes.",
+                                                     "Windows or another program already uses " + settings.Hotkey + ". Pick another shortcut in Settings."), ToolTipIcon.Warning);
 
             timer.Interval = 50;
             timer.Tick += delegate { Tick(); };
             timer.Start();
         }
 
+        // Makes the current settings take effect: hold time, shortcut and tooltip.
+        // False when the shortcut already belongs to Windows or to another program.
+        bool PutToWork()
+        {
+            mouseHold = new HoldDetector(settings.HoldMs);
+            keysHold = new HoldDetector(settings.HoldMs);
+            tray.Text = Tooltip();
+            return shortcut.Register(settings.Hotkey);
+        }
+
+        string Tooltip()
+        {
+            string time = (settings.HoldMs / 1000.0).ToString("0.#") + " s";
+            string keys = settings.Hotkey == null ? null : settings.Hotkey.ToString();
+            string text =
+                keys == null ? T("Mousetrap: mantén los dos botones " + time, "Mousetrap: hold both mouse buttons for " + time)
+                : settings.Mouse ? T("Mousetrap: dos botones o " + keys + ", " + time, "Mousetrap: both buttons or " + keys + ", " + time)
+                : T("Mousetrap: mantén " + keys + " " + time, "Mousetrap: hold " + keys + " for " + time);
+            // The notification area throws on anything longer.
+            return text.Length > 63 ? text.Substring(0, 63) : text;
+        }
+
         void Tick()
         {
             bool left = Native.IsDown(Native.VK_LBUTTON), right = Native.IsDown(Native.VK_RBUTTON);
+            bool keys = shortcut.Held();
             long now = clock.ElapsedMilliseconds;
-            if (detector.Update(left, right, now)) Jump();
-            halo.Update(left || right, now);
+            bool byMouse = mouseHold.Update(settings.Mouse && left && right, now);
+            bool byKeys = keysHold.Update(keys, now);
+            if (byMouse || byKeys) Jump();
+            halo.Update(left || right || keys, now);
+        }
+
+        void OpenSettings()
+        {
+            if (window != null)
+            {
+                window.Activate();
+                return;
+            }
+            // Let go of the shortcut while the window is open, so that pressing it there records it.
+            shortcut.Register(null);
+            window = new SettingsForm(settings.Copy(), icon, Adopt);
+            window.FormClosed += delegate
+            {
+                window = null;
+                shortcut.Register(settings.Hotkey);
+            };
+            window.Show();
+            window.Activate();
+        }
+
+        // What the settings window calls on Save. False, with nothing changed, when
+        // the shortcut already belongs to Windows or to another program.
+        bool Adopt(Settings wanted)
+        {
+            if (!shortcut.Register(wanted.Hotkey)) return false;
+            settings.Mouse = wanted.Mouse;
+            settings.Hotkey = wanted.Hotkey;
+            settings.HoldMs = wanted.HoldMs;
+            PutToWork();
+            Save();
+            return true;
         }
 
         void Jump()
@@ -114,6 +181,9 @@ namespace Mousetrap
             }
 
             menu.Items.Add(new ToolStripSeparator());
+            ToolStripMenuItem options = new ToolStripMenuItem(T("Ajustes…", "Settings…"));
+            options.Click += delegate { OpenSettings(); };
+            menu.Items.Add(options);
             ToolStripMenuItem startup = new ToolStripMenuItem(T("Iniciar con Windows", "Start with Windows"));
             startup.Checked = StartsWithWindows();
             startup.Click += delegate { SetStartsWithWindows(!StartsWithWindows()); };
@@ -185,11 +255,12 @@ namespace Mousetrap
             }
         }
 
-        static string T(string spanish, string english) { return Spanish ? spanish : english; }
+        static string T(string spanish, string english) { return Lang.T(spanish, english); }
 
         public void Dispose()
         {
             timer.Dispose();
+            shortcut.Dispose();
             tray.Visible = false;
             tray.Dispose();
             menu.Dispose();
@@ -262,9 +333,67 @@ namespace Mousetrap
         }
     }
 
+    // The keyboard shortcut, registered with Windows as a system-wide hot key. Windows
+    // keeps a registered hot key to itself, so holding it types nothing into the
+    // program in front, and no keyboard hook is needed.
+    sealed class Shortcut : NativeWindow, IDisposable
+    {
+        const int WM_HOTKEY = 0x0312, Id = 1;
+        const uint MOD_ALT = 1, MOD_CONTROL = 2, MOD_SHIFT = 4;
+        static readonly IntPtr MessageOnly = new IntPtr(-3);
+
+        Hotkey registered;
+        bool pressed;
+
+        public Shortcut()
+        {
+            CreateParams cp = new CreateParams();
+            cp.Parent = MessageOnly;
+            CreateHandle(cp);
+        }
+
+        // Null registers nothing. False when the shortcut already belongs to someone else.
+        public bool Register(Hotkey hotkey)
+        {
+            if (registered != null) Native.UnregisterHotKey(Handle, Id);
+            registered = null;
+            pressed = false;
+            if (hotkey == null) return true;
+            uint modifiers = (hotkey.Ctrl ? MOD_CONTROL : 0) | (hotkey.Alt ? MOD_ALT : 0) | (hotkey.Shift ? MOD_SHIFT : 0);
+            if (!Native.RegisterHotKey(Handle, Id, modifiers, (uint)hotkey.Key)) return false;
+            registered = hotkey;
+            return true;
+        }
+
+        // True from the moment the shortcut is pressed until one of its keys is let go.
+        public bool Held()
+        {
+            if (!pressed) return false;
+            pressed = Native.IsDown(registered.Key)
+                && (!registered.Ctrl || Native.IsDown(Native.VK_CONTROL))
+                && (!registered.Alt || Native.IsDown(Native.VK_MENU))
+                && (!registered.Shift || Native.IsDown(Native.VK_SHIFT));
+            return pressed;
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            // Sent again and again while the keys stay down; the first one is all it takes.
+            // One still in the queue when the shortcut was dropped must not count.
+            if (m.Msg == WM_HOTKEY && registered != null) pressed = true;
+            base.WndProc(ref m);
+        }
+
+        public void Dispose()
+        {
+            Register(null);
+            DestroyHandle();
+        }
+    }
+
     static class Native
     {
-        public const int VK_LBUTTON = 0x01, VK_RBUTTON = 0x02;
+        public const int VK_LBUTTON = 0x01, VK_RBUTTON = 0x02, VK_SHIFT = 0x10, VK_CONTROL = 0x11, VK_MENU = 0x12;
         const int WM_CANCELMODE = 0x001F;
         const uint SMTO_ABORTIFHUNG = 0x0002;
 
@@ -285,7 +414,35 @@ namespace Mousetrap
         [DllImport("user32.dll")] static extern bool GetGUIThreadInfo(uint thread, ref GUITHREADINFO info);
         [DllImport("user32.dll")] static extern IntPtr SendMessageTimeout(IntPtr hwnd, int msg, IntPtr w, IntPtr l, uint flags, uint timeoutMs, out IntPtr result);
 
+        [DllImport("user32.dll")] public static extern bool RegisterHotKey(IntPtr hwnd, int id, uint modifiers, uint key);
+        [DllImport("user32.dll")] public static extern bool UnregisterHotKey(IntPtr hwnd, int id);
+        [DllImport("user32.dll")] static extern uint GetDpiForWindow(IntPtr hwnd);
+        [DllImport("user32.dll")] static extern uint MapVirtualKey(uint code, uint mapType);
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int ToUnicode(uint key, uint scanCode, byte[] keyState, [Out] char[] text, int capacity, uint flags);
+
         public static bool IsDown(int vk) { return (GetAsyncKeyState(vk) & 0x8000) != 0; }
+
+        // How many times bigger than at 96 dpi things are on the monitor the window is on.
+        public static float ZoomOf(IntPtr hwnd)
+        {
+            try { return GetDpiForWindow(hwnd) / 96f; }
+            catch (EntryPointNotFoundException) { return 1f; }   // Windows 10 before 1607
+        }
+
+        // What Ctrl+Alt+key types on this keyboard (AltGr+2 is @ on a Spanish one), or
+        // null. As a shortcut it would leave that character impossible to type.
+        public static string TypedBy(Hotkey hotkey)
+        {
+            const uint LeaveKeyboardStateAlone = 4;
+            if (!hotkey.Ctrl || !hotkey.Alt) return null;
+            byte[] state = new byte[256];
+            state[VK_CONTROL] = state[VK_MENU] = 0x80;
+            if (hotkey.Shift) state[VK_SHIFT] = 0x80;
+            char[] text = new char[8];
+            // Negative for a dead key such as the tilde, which would be lost just the same.
+            int typed = ToUnicode((uint)hotkey.Key, MapVirtualKey((uint)hotkey.Key, 0), state, text, text.Length, LeaveKeyboardStateAlone);
+            return typed == 0 || char.IsControl(text[0]) ? null : text[0].ToString();
+        }
 
         // Whatever the buttons were pressed on (a button, a text selection, a title bar)
         // is still mid-press. Tell it to give up, as Windows itself does when a dialog

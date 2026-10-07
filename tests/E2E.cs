@@ -7,15 +7,19 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
-// End-to-end check against the real exe and the real mouse. It presses the buttons
-// with synthetic input over a window of its own and watches where the pointer ends
-// up, so it takes over the mouse while it runs (about 20 s). Run it with: test.cmd e2e
+// End-to-end check against the real exe, the real mouse and the real keyboard. It
+// presses buttons and keys with synthetic input over a window of its own and watches
+// where the pointer ends up, so it takes over both while it runs (about 30 s).
+// Run it with: test.cmd e2e
 static class E2E
 {
-    const uint LeftDown = 0x02, LeftUp = 0x04, RightDown = 0x08, RightUp = 0x10;
+    const uint LeftDown = 0x02, LeftUp = 0x04, RightDown = 0x08, RightUp = 0x10, KeyUp = 0x02;
     const int WM_CONTEXTMENU = 0x007B, WM_QUIT = 0x0012;
+    const byte Control = 0x11, Alt = 0x12, F9 = 0x78;
 
     [DllImport("user32.dll")] static extern void mouse_event(uint flags, uint dx, uint dy, uint data, UIntPtr extra);
+    [DllImport("user32.dll")] static extern void keybd_event(byte key, byte scan, uint flags, UIntPtr extra);
+    [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
     [DllImport("user32.dll")] static extern bool SetCursorPos(int x, int y);
     [DllImport("user32.dll")] static extern IntPtr WindowFromPoint(Point p);
     [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint pid);
@@ -23,10 +27,11 @@ static class E2E
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetClassName(IntPtr hwnd, StringBuilder text, int max);
 
     // Something ordinary to press on: a button that would be clicked, inside a
-    // window that hears about any context menu the press would have opened.
+    // window that hears about any context menu the press would have opened and
+    // about every F9 that reaches it.
     sealed class Probe : Form
     {
-        public int Clicks, ContextMenus;
+        public int Clicks, ContextMenus, F9s;
         public readonly Button Target = new Button();
 
         public Probe(Point location)
@@ -36,6 +41,7 @@ static class E2E
             Location = location;
             ClientSize = new Size(360, 220);
             TopMost = true;
+            KeyPreview = true;
             Target.Text = "probe";
             Target.Dock = DockStyle.Fill;
             Target.Click += delegate { Clicks++; };
@@ -52,10 +58,17 @@ static class E2E
             if (m.Msg == WM_CONTEXTMENU) ContextMenus++;
             base.WndProc(ref m);
         }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.F9) F9s++;
+            base.OnKeyDown(e);
+        }
     }
 
     static int failed;
     static bool leftHeld, rightHeld;
+    static readonly System.Collections.Generic.List<byte> keysHeld = new System.Collections.Generic.List<byte>();
     static Process app;
     static string exe, config;
 
@@ -88,6 +101,10 @@ static class E2E
                     "target=" + chosen.DeviceName + "\r\nhold_ms=1000\r\n",
                     delegate(Probe probe, Point origin) { AChosenScreenAndHoldTimeAreHonoured(probe, origin, chosen); });
             }
+            Scenario("Config file: hotkey=Ctrl+Alt+F9, hold_ms=1000",
+                "hotkey=Ctrl+Alt+F9\r\nhold_ms=1000\r\n", false, HoldingTheShortcutJumpsToo);
+            Scenario("Config file: mouse=off, hotkey=Ctrl+Alt+F9, hold_ms=1000",
+                "mouse=off\r\nhotkey=Ctrl+Alt+F9\r\nhold_ms=1000\r\n", TheMouseGestureCanBeSwitchedOff);
         }
         finally
         {
@@ -100,9 +117,15 @@ static class E2E
         return failed == 0 ? 0 : 1;
     }
 
-    // Starts the app with the given config, presses both buttons over a fresh probe
-    // window, runs the body, and always lets go of the buttons and closes the app.
     static void Scenario(string title, string configText, Action<Probe, Point> body)
+    {
+        Scenario(title, configText, true, body);
+    }
+
+    // Starts the app with the given config, puts the pointer over a fresh probe window,
+    // pressing both buttons there unless told not to, runs the body, and always lets go
+    // of the buttons and the keys and closes the app.
+    static void Scenario(string title, string configText, bool pressButtons, Action<Probe, Point> body)
     {
         Console.WriteLine(title);
         if (configText == null) File.Delete(config); else File.WriteAllText(config, configText);
@@ -112,12 +135,17 @@ static class E2E
             using (Probe probe = ShowProbe())
             {
                 Point origin = probe.Middle;
-                if (PressBothOver(probe, origin)) body(probe, origin);
+                if (PointAt(probe, origin))
+                {
+                    if (pressButtons) PressBoth();
+                    body(probe, origin);
+                }
             }
         }
         finally
         {
             ReleaseButtons();
+            ReleaseKeys();
             StopApp();
         }
     }
@@ -169,6 +197,41 @@ static class E2E
         Check("no click and no context menu", probe.Clicks == 0 && probe.ContextMenus == 0, probe.Clicks + "/" + probe.ContextMenus);
     }
 
+    static void HoldingTheShortcutJumpsToo(Probe probe, Point origin)
+    {
+        // A click first, so that the probe is the window the keyboard is talking to,
+        // and one F9 on its own to see that keys do get there.
+        mouse_event(LeftDown, 0, 0, 0, UIntPtr.Zero);
+        mouse_event(LeftUp, 0, 0, 0, UIntPtr.Zero);
+        Pump(200);
+        Check("the probe window has the keyboard", GetForegroundWindow() == probe.Handle, Describe(Cursor.Position));
+        Press(F9);
+        ReleaseKeys();
+        Pump(200);
+        Check("a plain F9 reaches the window in front", probe.F9s == 1, probe.F9s);
+
+        Press(Control);
+        Press(Alt);
+        Press(F9);
+        Pump(600);
+        Check("the pointer has not moved after 0.6 s", Cursor.Position == origin, Cursor.Position);
+        Pump(1000);
+        Check("the pointer is in the middle of the main screen after 1.6 s", Near(Cursor.Position, Centre(Screen.PrimaryScreen)), Cursor.Position);
+        Check("the halo is under the pointer", OwnerOf(Cursor.Position) == app.Id, Describe(Cursor.Position));
+
+        ReleaseKeys();
+        Pump(400);
+        Check("the shortcut never reached the window in front", probe.F9s == 1, probe.F9s);
+        Pump(1500);
+        Check("the halo is gone shortly after letting go", OwnerOf(Cursor.Position) != app.Id, Describe(Cursor.Position));
+    }
+
+    static void TheMouseGestureCanBeSwitchedOff(Probe probe, Point origin)
+    {
+        Pump(1600);
+        Check("holding both buttons does not move the pointer", Cursor.Position == origin, Cursor.Position);
+    }
+
     static Probe ShowProbe()
     {
         Rectangle area = Screen.PrimaryScreen.WorkingArea;
@@ -179,22 +242,37 @@ static class E2E
         return probe;
     }
 
-    // Refuses to press anything unless the probe really is what is under the pointer.
-    static bool PressBothOver(Probe probe, Point origin)
+    // False, so that nothing gets pressed, unless the probe really is what is under the pointer.
+    static bool PointAt(Probe probe, Point origin)
     {
         SetCursorPos(origin.X, origin.Y);
         Pump(150);
-        if (WindowFromPoint(Cursor.Position) != probe.Target.Handle)
-        {
-            Check("the probe window is under the pointer", false, Describe(Cursor.Position));
-            return false;
-        }
+        if (WindowFromPoint(Cursor.Position) == probe.Target.Handle) return true;
+        Check("the probe window is under the pointer", false, Describe(Cursor.Position));
+        return false;
+    }
+
+    static void PressBoth()
+    {
         mouse_event(LeftDown, 0, 0, 0, UIntPtr.Zero);
         leftHeld = true;
         Pump(60);
         mouse_event(RightDown, 0, 0, 0, UIntPtr.Zero);
         rightHeld = true;
-        return true;
+    }
+
+    static void Press(byte key)
+    {
+        keybd_event(key, 0, 0, UIntPtr.Zero);
+        keysHeld.Add(key);
+        Pump(40);
+    }
+
+    // Last pressed, first let go, as fingers do.
+    static void ReleaseKeys()
+    {
+        for (int i = keysHeld.Count - 1; i >= 0; i--) keybd_event(keysHeld[i], 0, KeyUp, UIntPtr.Zero);
+        keysHeld.Clear();
     }
 
     static void Release(uint button)
