@@ -531,7 +531,7 @@ namespace Mousetrap
     sealed class SettingsForm : Form
     {
         const int WM_SYSCOMMAND = 0x0112, SC_KEYMENU = 0xF100, WM_DPICHANGED = 0x02E0;
-        const int LongestHoldMs = 10000;
+        const int LongestHoldMs = 4000;
         static readonly SizeF Design = new SizeF(420, 604);
         static readonly RectangleF Calling = new RectangleF(24, 96, 372, 226), Holding = new RectangleF(24, 338, 372, 104),
             Speaking = new RectangleF(24, 458, 372, 64);

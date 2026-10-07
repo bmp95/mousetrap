@@ -60,7 +60,7 @@ The app speaks Spanish on Spanish systems and English everywhere else, unless yo
 
 - **How to call it**: with both mouse buttons, with a keyboard shortcut, or with both.
 - **The shortcut**: click the box and press the keys. It takes Ctrl or Alt plus one more key. If another program already uses the combination, or it types a character on your keyboard (Ctrl + Alt + 2 is @ on a Spanish one), the window says so and won't save it.
-- **How long to hold**: from 0.5 to 10 seconds.
+- **How long to hold**: from 0.5 to 4 seconds.
 - **Language**: the one Windows is in (Auto), Spanish or English.
 
 It takes effect on Save, no restart needed. Everything lands in `%APPDATA%\Mousetrap\config.ini`, which you can also edit by hand; if you do, restart the app afterwards.
@@ -165,7 +165,7 @@ Con el botón derecho sobre el icono se elige el destino y poco más:
 
 - **Cómo llamarlo**: con los dos botones del ratón, con un atajo de teclado o con las dos cosas.
 - **El atajo**: haz clic en el recuadro y pulsa las teclas. Lleva Ctrl o Alt y una tecla más. Si la combinación ya la usa otro programa, o en tu teclado escribe un carácter (Ctrl + Alt + 2 es la @ en un teclado español), la ventana lo dice y no la guarda.
-- **Cuánto mantenerlo**: de 0,5 a 10 segundos.
+- **Cuánto mantenerlo**: de 0,5 a 4 segundos.
 - **Idioma**: el de Windows (Auto), español o inglés.
 
 Se aplica al guardar, sin reiniciar. Todo queda en `%APPDATA%\Mousetrap\config.ini`, que también se puede editar a mano; en ese caso, reinicia la aplicación después.
