@@ -12,5 +12,5 @@ del /q dist\*.old.exe >nul 2>&1
 del /q dist\Mousetrap.exe >nul 2>&1
 if exist dist\Mousetrap.exe ren dist\Mousetrap.exe Mousetrap.%RANDOM%.old.exe
 
-"%CSC%" /nologo /codepage:65001 /target:winexe /optimize+ /win32manifest:app.manifest /out:dist\Mousetrap.exe /r:System.Windows.Forms.dll /r:System.Drawing.dll src\Core.cs src\Program.cs src\SettingsForm.cs || exit /b 1
+"%CSC%" /nologo /codepage:65001 /target:winexe /optimize+ /win32manifest:app.manifest /win32icon:assets\mousetrap.ico /out:dist\Mousetrap.exe /r:System.Windows.Forms.dll /r:System.Drawing.dll src\AssemblyInfo.cs src\Core.cs src\Program.cs src\SettingsForm.cs || exit /b 1
 echo Built dist\Mousetrap.exe
