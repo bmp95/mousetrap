@@ -133,6 +133,14 @@ The result lands in `dist\Mousetrap.exe`.
 
 © 2026 Bernabé Muñoz Peñas. Free software under the [GNU GPL v3.0](LICENSE): use it, modify it and redistribute it; if you distribute a modified version, it has to ship with its source under this same licence.
 
+### 🔏 Code signing policy
+
+Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org). The application is pending, so the releases published so far are not signed yet.
+
+- Committers and reviewers: [Bernabé Muñoz Peñas](https://github.com/bmp95)
+- Approvers: [Bernabé Muñoz Peñas](https://github.com/bmp95)
+- Privacy policy: this program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it.
+
 ---
 
 ## 🇪🇸 Español
@@ -249,6 +257,14 @@ El resultado queda en `dist\Mousetrap.exe`.
 ### 📄 Licencia
 
 © 2026 Bernabé Muñoz Peñas. Software libre bajo la [GNU GPL v3.0](LICENSE): puedes usarlo, modificarlo y redistribuirlo; si distribuyes una versión modificada, tiene que ir con su código y bajo esta misma licencia.
+
+### 🔏 Política de firma de código
+
+Firma de código gratuita proporcionada por [SignPath.io](https://signpath.io), con certificado de [SignPath Foundation](https://signpath.org). La solicitud está pendiente, así que las versiones publicadas hasta ahora aún no van firmadas.
+
+- Autores y revisores: [Bernabé Muñoz Peñas](https://github.com/bmp95)
+- Aprobadores: [Bernabé Muñoz Peñas](https://github.com/bmp95)
+- Política de privacidad: este programa no transfiere ninguna información a otros sistemas en red salvo que lo pida expresamente el usuario o quien lo instale o lo opere.
 
 ---
 
