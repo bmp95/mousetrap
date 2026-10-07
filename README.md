@@ -1,15 +1,122 @@
 # 🪤 Mousetrap
 
-**El puntero se te escapa entre pantallas. Esta es la ratonera.**
+**Your pointer keeps escaping across screens. This is the trap.**
 
-*Your pointer keeps escaping across screens. This is the trap.*
+*El puntero se te escapa entre pantallas. Esta es la ratonera.*
 
 ![C#](https://img.shields.io/badge/C%23-.NET%20Framework%204-512BD4?logo=dotnet&logoColor=white)
 ![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4)
-![Size](https://img.shields.io/badge/exe-39%20KB-FF9600)
+![Size](https://img.shields.io/badge/exe-41%20KB-FF9600)
 ![License](https://img.shields.io/badge/license-GPL--3.0-3DDC84)
 
-[**🇪🇸 Español**](#-español) · [**🇬🇧 English**](#-english)
+[**🇬🇧 English**](#-english) · [**🇪🇸 Español**](#-español)
+
+---
+
+## 🇬🇧 English
+
+### The problem
+
+Three screens, one pointer and no idea where it went. We all know the ritual: shake the mouse like a maraca and chase whatever moves. It works, but nobody would call it elegant.
+
+**Mousetrap** takes a different approach: don't look for it, make it come to you. Hold both mouse buttons for 3 seconds and the pointer shows up in the middle of the screen you choose, marked with an orange disc that is hard to miss.
+
+### ⚙️ How it works
+
+| Mechanism | What it does |
+|---|---|
+| ⏱️ **Two buttons, 3 seconds** | Left and right together: a gesture you almost never make by accident. If you do, the hold time can be changed in Settings |
+| ⌨️ **Or your own shortcut** | If you prefer the keyboard, record whatever combination you like (Ctrl + Alt + M, say) by pressing it once. It works alongside the mouse gesture or instead of it |
+| 🎯 **Jump to the centre** | Of the main screen, the screen the pointer is already on, or a specific one; you pick from the tray |
+| 🟠 **Orange disc** | Marks the spot for a moment so your eye finds it first time |
+| 🤫 **No ghost clicks** | Letting go of the buttons clicks nothing and opens no context menu on whatever was underneath |
+| 🖥️ **Any screen layout** | Different zoom levels, portrait screens, screens sitting higher than the main one: the centre is the centre |
+| 🪶 **A single 41 KB exe** | No installer, no admin rights, no network connections |
+
+### 🖱️ Usage
+
+1. Run `Mousetrap.exe`. An orange circle appears in the system tray, next to the clock.
+2. Hold both mouse buttons for 3 seconds.
+3. The pointer shows up in the middle of the main screen.
+
+Right-click the tray icon to choose the destination, and not much else:
+
+| Option | What it does |
+|---|---|
+| The main screen | Always the middle of the main screen (default) |
+| The screen the pointer is already on | Centres it without changing screens |
+| Screen 1, 2, 3… | Always that screen; if it gets unplugged, falls back to the main one |
+| Settings… | Opens the settings window; clicking the icon opens it too |
+| Start with Windows | Launches on sign-in |
+| Exit | Closes the trap |
+
+The app speaks Spanish on Spanish systems and English everywhere else, unless you pick a language in Settings.
+
+### 🎛️ Settings
+
+<p align="center"><img src="docs/settings.png" alt="Mousetrap settings window" width="340"></p>
+
+"Settings…" in the tray menu opens a window with the only things there are to decide:
+
+- **How to call it**: with both mouse buttons, with a keyboard shortcut, or with both.
+- **The shortcut**: click the box and press the keys. It takes Ctrl or Alt plus one more key. If another program already uses the combination, or it types a character on your keyboard (Ctrl + Alt + 2 is @ on a Spanish one), the window says so and won't save it.
+- **How long to hold**: from 0.5 to 10 seconds.
+- **Language**: the one Windows is in (Auto), Spanish or English.
+
+It takes effect on Save, no restart needed. Everything lands in `%APPDATA%\Mousetrap\config.ini`, which you can also edit by hand; if you do, restart the app afterwards.
+
+```ini
+# primary | cursor | a display name such as \\.\DISPLAY2
+target=primary
+# milliseconds the buttons or the shortcut must be held (minimum 500)
+hold_ms=3000
+# on | off: whether both mouse buttons call the pointer
+mouse=on
+# a keyboard shortcut that also calls it; empty for none
+hotkey=Ctrl+Alt+M
+# auto (the language Windows is in), es or en
+language=auto
+```
+
+### 🎯 Technical decisions
+
+| Decision | Why |
+|---|---|
+| 🪝 **No mouse or keyboard hooks** | A timer asks 20 times a second whether both buttons are down (`GetAsyncKeyState`). Nothing sits between your mouse and the rest of your programs |
+| 🟠 **The disc earns its keep** | It appears right under the pointer and is the one that receives the button releases, so they never reach the window underneath |
+| ⌨️ **Windows keeps the shortcut** | It is registered as a system-wide hot key (`RegisterHotKey`): while you hold it, Windows keeps it and it never reaches the program in front. Still no hooks |
+| ✋ **The half-finished press is cancelled** | Before jumping, it tells the window that had the press in progress to give up (`WM_CANCELMODE`), as Windows does when a dialog pops up, so the jump isn't taken for a drag |
+| 📐 **Per-monitor DPI** | Without it, coordinates get scaled on screens whose zoom differs from the main one and the pointer lands off-centre |
+| 🧰 **Built with what Windows ships** | The .NET Framework 4 C# compiler comes with Windows 10 and 11: no SDK, no NuGet, nothing to install |
+
+### 🧪 Tests
+
+| Command | What it checks |
+|---|---|
+| `test.cmd` | 43 logic tests: hold detection, keyboard shortcuts, configuration and screen choice |
+| `test.cmd e2e` | The above plus an end-to-end test against the real `.exe` |
+
+The end-to-end test presses buttons and keys with synthetic input over a window of its own and checks where the pointer ends up, so it **takes over the mouse and the keyboard for about 30 seconds**. Exit the app first if it is running.
+
+> 😄 Yes: to test an app that moves your mouse, you have to let something move your mouse.
+
+### ▶️ Build
+
+```bat
+build.cmd
+```
+
+The result lands in `dist\Mousetrap.exe`.
+
+### ⚠️ Limitations
+
+- It does nothing while the active window belongs to a program running as administrator (Task Manager, for example): Windows won't let a normal program see the mouse state there.
+- In games that hold both buttons for several seconds, the pointer will jump too. Exit the app from the tray while you play.
+- The executable isn't signed, so some antivirus tools scan or hold it the first time it runs.
+
+### 📄 License
+
+© 2026 Bernabé Muñoz Peñas. Free software under the [GNU GPL v3.0](LICENSE): use it, modify it and redistribute it; if you distribute a modified version, it has to ship with its source under this same licence.
 
 ---
 
@@ -31,7 +138,7 @@ Tres pantallas, un puntero y ni idea de dónde está. Todos conocemos el ritual:
 | 🟠 **Disco naranja** | Marca el sitio un instante para que el ojo lo encuentre a la primera |
 | 🤫 **Sin clics fantasma** | Al soltar los botones no se pulsa nada ni se abre ningún menú contextual en lo que hubiera debajo |
 | 🖥️ **Pantallas de todo tipo** | Con distinto zoom, en vertical o colocadas más arriba que la principal: el centro es el centro |
-| 🪶 **Un solo exe de 39 KB** | Sin instalador, sin permisos de administrador y sin conectarse a nada |
+| 🪶 **Un solo exe de 41 KB** | Sin instalador, sin permisos de administrador y sin conectarse a nada |
 
 ### 🖱️ Uso
 
@@ -59,6 +166,7 @@ Con el botón derecho sobre el icono se elige el destino y poco más:
 - **Cómo llamarlo**: con los dos botones del ratón, con un atajo de teclado o con las dos cosas.
 - **El atajo**: haz clic en el recuadro y pulsa las teclas. Lleva Ctrl o Alt y una tecla más. Si la combinación ya la usa otro programa, o en tu teclado escribe un carácter (Ctrl + Alt + 2 es la @ en un teclado español), la ventana lo dice y no la guarda.
 - **Cuánto mantenerlo**: de 0,5 a 10 segundos.
+- **Idioma**: el de Windows (Auto), español o inglés.
 
 Se aplica al guardar, sin reiniciar. Todo queda en `%APPDATA%\Mousetrap\config.ini`, que también se puede editar a mano; en ese caso, reinicia la aplicación después.
 
@@ -71,6 +179,8 @@ hold_ms=3000
 mouse=on
 # atajo de teclado que también lo llama; vacío para no usar ninguno
 hotkey=Ctrl+Alt+M
+# auto (el idioma de Windows), es o en
+language=auto
 ```
 
 ### 🎯 Decisiones técnicas
@@ -88,7 +198,7 @@ hotkey=Ctrl+Alt+M
 
 | Comando | Qué comprueba |
 |---|---|
-| `test.cmd` | 39 tests de la lógica: detección de la pulsación, atajos de teclado, configuración y elección de pantalla |
+| `test.cmd` | 43 tests de la lógica: detección de la pulsación, atajos de teclado, configuración y elección de pantalla |
 | `test.cmd e2e` | Lo anterior y una prueba de extremo a extremo contra el `.exe` real |
 
 La prueba de extremo a extremo pulsa botones y teclas con entrada sintética sobre una ventana propia y comprueba dónde acaba el puntero, así que **toma el control del ratón y del teclado unos 30 segundos**. Cierra antes la aplicación si la tienes abierta.
@@ -112,110 +222,6 @@ El resultado queda en `dist\Mousetrap.exe`.
 ### 📄 Licencia
 
 © 2026 Bernabé Muñoz Peñas. Software libre bajo la [GNU GPL v3.0](LICENSE): puedes usarlo, modificarlo y redistribuirlo; si distribuyes una versión modificada, tiene que ir con su código y bajo esta misma licencia.
-
----
-
-## 🇬🇧 English
-
-### The problem
-
-Three screens, one pointer and no idea where it went. We all know the ritual: shake the mouse like a maraca and chase whatever moves. It works, but nobody would call it elegant.
-
-**Mousetrap** takes a different approach: don't look for it, make it come to you. Hold both mouse buttons for 3 seconds and the pointer shows up in the middle of the screen you choose, marked with an orange disc that is hard to miss.
-
-### ⚙️ How it works
-
-| Mechanism | What it does |
-|---|---|
-| ⏱️ **Two buttons, 3 seconds** | Left and right together: a gesture you almost never make by accident. If you do, the hold time can be changed in Settings |
-| ⌨️ **Or your own shortcut** | If you prefer the keyboard, record whatever combination you like (Ctrl + Alt + M, say) by pressing it once. It works alongside the mouse gesture or instead of it |
-| 🎯 **Jump to the centre** | Of the main screen, the screen the pointer is already on, or a specific one; you pick from the tray |
-| 🟠 **Orange disc** | Marks the spot for a moment so your eye finds it first time |
-| 🤫 **No ghost clicks** | Letting go of the buttons clicks nothing and opens no context menu on whatever was underneath |
-| 🖥️ **Any screen layout** | Different zoom levels, portrait screens, screens sitting higher than the main one: the centre is the centre |
-| 🪶 **A single 39 KB exe** | No installer, no admin rights, no network connections |
-
-### 🖱️ Usage
-
-1. Run `Mousetrap.exe`. An orange circle appears in the system tray, next to the clock.
-2. Hold both mouse buttons for 3 seconds.
-3. The pointer shows up in the middle of the main screen.
-
-Right-click the tray icon to choose the destination, and not much else:
-
-| Option | What it does |
-|---|---|
-| The main screen | Always the middle of the main screen (default) |
-| The screen the pointer is already on | Centres it without changing screens |
-| Screen 1, 2, 3… | Always that screen; if it gets unplugged, falls back to the main one |
-| Settings… | Opens the settings window; clicking the icon opens it too |
-| Start with Windows | Launches on sign-in |
-| Exit | Closes the trap |
-
-The menu is shown in Spanish on Spanish systems and in English everywhere else.
-
-### 🎛️ Settings
-
-<p align="center"><img src="docs/settings.png" alt="Mousetrap settings window" width="340"></p>
-
-"Settings…" in the tray menu opens a window with the only things there are to decide:
-
-- **How to call it**: with both mouse buttons, with a keyboard shortcut, or with both.
-- **The shortcut**: click the box and press the keys. It takes Ctrl or Alt plus one more key. If another program already uses the combination, or it types a character on your keyboard (Ctrl + Alt + 2 is @ on a Spanish one), the window says so and won't save it.
-- **How long to hold**: from 0.5 to 10 seconds.
-
-It takes effect on Save, no restart needed. Everything lands in `%APPDATA%\Mousetrap\config.ini`, which you can also edit by hand; if you do, restart the app afterwards.
-
-```ini
-# primary | cursor | a display name such as \\.\DISPLAY2
-target=primary
-# milliseconds the buttons or the shortcut must be held (minimum 500)
-hold_ms=3000
-# on | off: whether both mouse buttons call the pointer
-mouse=on
-# a keyboard shortcut that also calls it; empty for none
-hotkey=Ctrl+Alt+M
-```
-
-### 🎯 Technical decisions
-
-| Decision | Why |
-|---|---|
-| 🪝 **No mouse or keyboard hooks** | A timer asks 20 times a second whether both buttons are down (`GetAsyncKeyState`). Nothing sits between your mouse and the rest of your programs |
-| 🟠 **The disc earns its keep** | It appears right under the pointer and is the one that receives the button releases, so they never reach the window underneath |
-| ⌨️ **Windows keeps the shortcut** | It is registered as a system-wide hot key (`RegisterHotKey`): while you hold it, Windows keeps it and it never reaches the program in front. Still no hooks |
-| ✋ **The half-finished press is cancelled** | Before jumping, it tells the window that had the press in progress to give up (`WM_CANCELMODE`), as Windows does when a dialog pops up, so the jump isn't taken for a drag |
-| 📐 **Per-monitor DPI** | Without it, coordinates get scaled on screens whose zoom differs from the main one and the pointer lands off-centre |
-| 🧰 **Built with what Windows ships** | The .NET Framework 4 C# compiler comes with Windows 10 and 11: no SDK, no NuGet, nothing to install |
-
-### 🧪 Tests
-
-| Command | What it checks |
-|---|---|
-| `test.cmd` | 39 logic tests: hold detection, keyboard shortcuts, configuration and screen choice |
-| `test.cmd e2e` | The above plus an end-to-end test against the real `.exe` |
-
-The end-to-end test presses buttons and keys with synthetic input over a window of its own and checks where the pointer ends up, so it **takes over the mouse and the keyboard for about 30 seconds**. Exit the app first if it is running.
-
-> 😄 Yes: to test an app that moves your mouse, you have to let something move your mouse.
-
-### ▶️ Build
-
-```bat
-build.cmd
-```
-
-The result lands in `dist\Mousetrap.exe`.
-
-### ⚠️ Limitations
-
-- It does nothing while the active window belongs to a program running as administrator (Task Manager, for example): Windows won't let a normal program see the mouse state there.
-- In games that hold both buttons for several seconds, the pointer will jump too. Exit the app from the tray while you play.
-- The executable isn't signed, so some antivirus tools scan or hold it the first time it runs.
-
-### 📄 License
-
-© 2026 Bernabé Muñoz Peñas. Free software under the [GNU GPL v3.0](LICENSE): use it, modify it and redistribute it; if you distribute a modified version, it has to ship with its source under this same licence.
 
 ---
 
