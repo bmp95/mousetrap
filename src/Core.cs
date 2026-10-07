@@ -48,8 +48,17 @@ namespace Mousetrap
         public bool Mouse = true;
         // The keyboard shortcut that also calls it; null for none.
         public Hotkey Hotkey;
+        // What the menu and the windows are written in: "es", "en", or "auto" to follow Windows.
+        public string Language = Auto;
+        public const string Auto = "auto";
 
         public Settings Copy() { return (Settings)MemberwiseClone(); }
+
+        // Whether to speak Spanish, given the two-letter code of the language Windows is in.
+        public bool UsesSpanish(string windowsLanguage)
+        {
+            return (Language == Auto ? windowsLanguage : Language) == "es";
+        }
 
         public static Settings Parse(string text)
         {
@@ -67,6 +76,11 @@ namespace Mousetrap
                     s.HoldMs = Math.Max(MinHoldMs, ms);
                 if (key == "mouse") s.Mouse = value.ToLowerInvariant() != "off";
                 if (key == "hotkey") s.Hotkey = Hotkey.Parse(value);
+                if (key == "language")
+                {
+                    string language = value.ToLowerInvariant();
+                    s.Language = language == "es" || language == "en" ? language : Auto;
+                }
             }
             // With nothing left to call the pointer the app would be running for nothing.
             if (s.Hotkey == null) s.Mouse = true;
@@ -81,10 +95,12 @@ namespace Mousetrap
             sb.AppendLine("# hold_ms: how long the buttons or the shortcut must be held");
             sb.AppendLine("# mouse:   on | off, whether holding both mouse buttons calls the pointer");
             sb.AppendLine("# hotkey:  a keyboard shortcut that also calls it, such as Ctrl+Alt+M; empty for none");
+            sb.AppendLine("# language: auto (the one Windows is in) | es | en");
             sb.AppendLine("target=" + Target);
             sb.AppendLine("hold_ms=" + HoldMs.ToString(CultureInfo.InvariantCulture));
             sb.AppendLine("mouse=" + (Mouse ? "on" : "off"));
             sb.AppendLine("hotkey=" + Hotkey);
+            sb.AppendLine("language=" + Language);
             return sb.ToString();
         }
     }

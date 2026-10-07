@@ -147,6 +147,30 @@ static class CoreTests
             Equal<Hotkey>(null, back.Hotkey);
         });
 
+        Test("the language follows Windows unless the file names one", delegate
+        {
+            Equal("auto", Settings.Parse("").Language);
+            Equal(true, Settings.Parse("").UsesSpanish("es"));
+            Equal(false, Settings.Parse("").UsesSpanish("en"));
+            Equal(false, Settings.Parse("").UsesSpanish("fr"));
+        });
+        Test("a language named in the file wins over the one of Windows", delegate
+        {
+            Equal(false, Settings.Parse("language=en\n").UsesSpanish("es"));
+            Equal(true, Settings.Parse("language = ES\n").UsesSpanish("en"));
+        });
+        Test("a language the app does not speak falls back to following Windows", delegate
+        {
+            Equal("auto", Settings.Parse("language=klingon\n").Language);
+            Equal("auto", Settings.Parse("language=\n").Language);
+        });
+        Test("the language survives saving", delegate
+        {
+            Settings s = new Settings();
+            s.Language = "en";
+            Equal("en", Settings.Parse(s.ToText()).Language);
+        });
+
         Console.WriteLine("Hotkey");
         Test("reads modifiers in any order, case and spacing, and writes them back tidy", delegate
         {

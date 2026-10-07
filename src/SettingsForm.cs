@@ -465,21 +465,85 @@ namespace Mousetrap
         }
     }
 
+    // A row of options, one of which is picked.
+    sealed class Choice : Drawn
+    {
+        public string[] Options = new string[0];
+        int picked;
+
+        public Choice() { AccessibleRole = AccessibleRole.Grouping; }
+
+        public int Picked
+        {
+            get { return picked; }
+            set
+            {
+                int clamped = Math.Max(0, Math.Min(Options.Length - 1, value));
+                if (clamped == picked) return;
+                picked = clamped;
+                Invalidate();
+            }
+        }
+
+        protected override void Draw(Graphics g)
+        {
+            RectangleF track = new RectangleF(1, 1, Area.Width - 2, Area.Height - 2);
+            Look.Fill(g, Look.Paper, track, 11);
+            Look.Outline(g, Ringed ? Look.Ink : Look.Line, 1, track, 11);
+            float each = (track.Width - 6) / Options.Length;
+            for (int i = 0; i < Options.Length; i++)
+            {
+                RectangleF cell = new RectangleF(track.X + 3 + each * i, track.Y + 3, each, track.Height - 6);
+                if (i == picked)
+                {
+                    Look.Fill(g, Look.Card, cell, 8);
+                    Look.Outline(g, Look.Idle, 1, cell, 8);
+                }
+                Look.Centered(g, Options[i], Look.Strong, i == picked ? Look.Ink : Look.Soft, cell);
+            }
+        }
+
+        protected override void OnMouseDown(MouseEventArgs e)
+        {
+            base.OnMouseDown(e);
+            Focus();
+            Picked = (int)((At(e).X - 4) / ((Area.Width - 8) / Options.Length));
+        }
+
+        // Otherwise the arrow keys would move the focus instead of the choice.
+        protected override bool IsInputKey(Keys keyData)
+        {
+            Keys key = keyData & Keys.KeyCode;
+            return key == Keys.Left || key == Keys.Right || base.IsInputKey(keyData);
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+            if (e.KeyCode == Keys.Left) Picked--;
+            else if (e.KeyCode == Keys.Right) Picked++;
+        }
+    }
+
     // The settings window: which ways of calling the pointer are on, the keyboard
-    // shortcut and how long either has to be held. It lays itself out and paints by
-    // hand so that it can follow the zoom of whichever monitor it is on.
+    // shortcut, how long either has to be held, and the language. It lays itself out
+    // and paints by hand so that it can follow the zoom of whichever monitor it is on.
     sealed class SettingsForm : Form
     {
         const int WM_SYSCOMMAND = 0x0112, SC_KEYMENU = 0xF100, WM_DPICHANGED = 0x02E0;
         const int LongestHoldMs = 10000;
-        static readonly SizeF Design = new SizeF(420, 524);
-        static readonly RectangleF Calling = new RectangleF(24, 96, 372, 226), Holding = new RectangleF(24, 338, 372, 104);
+        static readonly SizeF Design = new SizeF(420, 604);
+        static readonly RectangleF Calling = new RectangleF(24, 96, 372, 226), Holding = new RectangleF(24, 338, 372, 104),
+            Speaking = new RectangleF(24, 458, 372, 64);
+        // In the order the language options are shown.
+        static readonly string[] Languages = { Settings.Auto, "es", "en" };
 
         readonly Settings settings;
         readonly Func<Settings, bool> apply;
         readonly Toggle mouse = new Toggle(), keys = new Toggle();
         readonly Recorder recorder = new Recorder();
         readonly Slider hold = new Slider();
+        readonly Choice language = new Choice();
         readonly Pill cancel = new Pill(), save = new Pill();
         float zoom = 1f;
         string complaint;
@@ -506,6 +570,10 @@ namespace Mousetrap
             keys.AccessibleName = Lang.T("Un atajo de teclado", "A keyboard shortcut");
             recorder.AccessibleName = Lang.T("Atajo de teclado", "Keyboard shortcut");
             hold.AccessibleName = Lang.T("Cuánto mantenerlo", "How long to hold");
+            language.AccessibleName = Lang.T("Idioma", "Language");
+            // Each language under its own name, so it can be found from the wrong one.
+            language.Options = new[] { "Auto", "Español", "English" };
+            language.Picked = Math.Max(0, Array.IndexOf(Languages, settings.Language));
             cancel.Text = Lang.T("Cancelar", "Cancel");
             save.Text = Lang.T("Guardar", "Save");
             save.Primary = true;
@@ -518,9 +586,9 @@ namespace Mousetrap
             hold.Maximum = LongestHoldMs / 100;
             hold.Value = settings.HoldMs / 100;
 
-            mouse.BackColor = keys.BackColor = recorder.BackColor = hold.BackColor = Look.Card;
+            mouse.BackColor = keys.BackColor = recorder.BackColor = hold.BackColor = language.BackColor = Look.Card;
             cancel.BackColor = save.BackColor = Look.Paper;
-            Controls.AddRange(new Control[] { mouse, keys, recorder, hold, cancel, save });
+            Controls.AddRange(new Control[] { mouse, keys, recorder, hold, language, cancel, save });
 
             mouse.Changed += delegate { Say(null); };
             keys.Changed += delegate
@@ -552,6 +620,7 @@ namespace Mousetrap
             settings.Mouse = mouse.On;
             settings.Hotkey = keys.On ? recorder.Hotkey : null;
             settings.HoldMs = hold.Value * 100;
+            settings.Language = Languages[language.Picked];
             if (apply(settings)) Close();
             else Say(Lang.T("Ese atajo ya lo usa Windows u otro programa. Elige otro.",
                             "Windows or another program already uses that shortcut. Pick another."));
@@ -579,8 +648,9 @@ namespace Mousetrap
             Place(keys, 328, 191, 48, 28);
             Place(recorder, 44, 230, 332, 48);
             Place(hold, 32, 392, 356, 36);
-            Place(cancel, 176, 462, 106, 42);
-            Place(save, 290, 462, 106, 42);
+            Place(language, 150, 471, 226, 38);
+            Place(cancel, 176, 542, 106, 42);
+            Place(save, 290, 542, 106, 42);
             Invalidate();
         }
 
@@ -612,13 +682,16 @@ namespace Mousetrap
             Card(g, Holding, Lang.T("CUÁNTO MANTENERLO", "HOW LONG TO HOLD"));
             string seconds = (hold.Value / 10.0).ToString("0.0") + " s";
             Look.Text(g, seconds, Look.Figure, Look.Ink, 376 - Look.Width(g, seconds, Look.Figure), 351);
+
+            Card(g, Speaking, null);
+            Look.Text(g, language.AccessibleName, Look.Body, Look.Ink, 44, 480);
         }
 
         static void Card(Graphics g, RectangleF card, string heading)
         {
             Look.Fill(g, Look.Card, card, 16);
             Look.Outline(g, Look.Line, 1, card, 16);
-            Look.Text(g, heading, Look.Caps, Look.Soft, card.X + 20, card.Y + 19);
+            if (heading != null) Look.Text(g, heading, Look.Caps, Look.Soft, card.X + 20, card.Y + 19);
         }
 
         protected override bool ProcessCmdKey(ref Message msg, Keys keyData)

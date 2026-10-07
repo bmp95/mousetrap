@@ -30,11 +30,18 @@ namespace Mousetrap
         }
     }
 
+    // Every text the user sees exists in Spanish and in English.
     static class Lang
     {
-        static readonly bool Spanish = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "es";
+        static bool spanish;
 
-        public static string T(string spanish, string english) { return Spanish ? spanish : english; }
+        // The settings choose the language; left on "auto", the one Windows is in does.
+        public static void Use(Settings settings)
+        {
+            spanish = settings.UsesSpanish(CultureInfo.CurrentUICulture.TwoLetterISOLanguageName);
+        }
+
+        public static string T(string spanish, string english) { return Lang.spanish ? spanish : english; }
     }
 
     // Lives in the notification area, watches the two mouse buttons and the keyboard
@@ -61,6 +68,7 @@ namespace Mousetrap
         {
             this.configPath = configPath;
             settings = Settings.Parse(ReadOrEmpty(configPath));
+            Lang.Use(settings);
 
             tray.Icon = icon;
             tray.ContextMenuStrip = menu;
@@ -138,6 +146,8 @@ namespace Mousetrap
             settings.Mouse = wanted.Mouse;
             settings.Hotkey = wanted.Hotkey;
             settings.HoldMs = wanted.HoldMs;
+            settings.Language = wanted.Language;
+            Lang.Use(settings);
             PutToWork();
             Save();
             return true;
