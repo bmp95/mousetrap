@@ -1,0 +1,57 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The logic tests, the build, and the end-to-end test against the exe just built.
+      - name: Test and build
+        shell: cmd
+        run: test.cmd e2e
+
+      - name: Check the exe carries the tagged version
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        run: |
+          $version = (Get-Item dist\Mousetrap.exe).VersionInfo.ProductVersion
+          if ("v$version" -ne $env:GITHUB_REF_NAME) { throw "The exe says $version but the tag is $env:GITHUB_REF_NAME" }
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Mousetrap
+          path: dist/Mousetrap.exe
+          if-no-files-found: error
+
+  # A tag turns the exe that was just built and tested into a draft release,
+  # to be looked over and published by hand.
+  release:
+    if: github.ref_type == 'tag'
+    needs: build
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: Mousetrap
+
+      - name: Draft the release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $hash = (Get-FileHash Mousetrap.exe -Algorithm SHA256).Hash
+          $title = "Mousetrap " + $env:GITHUB_REF_NAME.TrimStart('v')
+          gh release create $env:GITHUB_REF_NAME Mousetrap.exe --repo $env:GITHUB_REPOSITORY --draft --title $title --notes "SHA-256 of Mousetrap.exe: $hash"
+          if ($LASTEXITCODE -ne 0) { throw "gh release create failed" }
