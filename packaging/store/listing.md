@@ -57,6 +57,8 @@ Hold both mouse buttons and your lost pointer jumps to the centre of the screen 
 
 ### Product features
 
+One line per box; each box takes up to 200 characters. If there is a single box, use the last block instead.
+
 ```text
 Hold both mouse buttons, or your own keyboard shortcut, to call the pointer
 Jumps to the centre of the main screen, the current screen or one you pick
@@ -65,6 +67,10 @@ Adjustable hold time, from 0.5 to 4 seconds
 Handles mixed zoom levels, portrait screens and stacked layouts
 No hooks, no network connections, nothing collected
 In English and Spanish
+```
+
+```text
+Call the pointer with both mouse buttons or your own shortcut. It jumps to the centre of the screen you choose, an orange disc marks the spot and nothing underneath gets clicked. No network, no data.
 ```
 
 ### Search terms
@@ -109,6 +115,8 @@ Mantén los dos botones del ratón y el puntero perdido salta al centro de la pa
 
 ### Características del producto
 
+Una línea por casilla; cada casilla admite hasta 200 caracteres. Si solo hay una casilla, usa el último bloque.
+
 ```text
 Mantén los dos botones del ratón, o tu propio atajo de teclado, para llamar al puntero
 Salta al centro de la pantalla principal, de la actual o de la que elijas
@@ -117,6 +125,10 @@ Tiempo de pulsación ajustable, de 0,5 a 4 segundos
 Admite pantallas con distinto zoom, en vertical y apiladas
 Sin ganchos, sin conexiones de red, sin recoger datos
 En español e inglés
+```
+
+```text
+Llama al puntero con los dos botones del ratón o con tu propio atajo. Salta al centro de la pantalla que elijas, un disco naranja marca el sitio y no se pulsa nada debajo. Sin conexiones ni datos.
 ```
 
 ### Términos de búsqueda
