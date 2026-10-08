@@ -33,6 +33,27 @@ jobs:
           path: dist/Mousetrap.exe
           if-no-files-found: error
 
+      # The same exe wrapped as the package the Microsoft Store takes. It is left
+      # unsigned: the Store signs what is uploaded to it.
+      - name: Package for the Microsoft Store
+        shell: pwsh
+        run: |
+          $version = (Get-Item dist\Mousetrap.exe).VersionInfo.FileVersion
+          $layout = New-Item -ItemType Directory -Force dist\store
+          Copy-Item dist\Mousetrap.exe $layout
+          Copy-Item packaging\Assets $layout -Recurse
+          (Get-Content packaging\AppxManifest.xml -Raw -Encoding UTF8).Replace('Version="0.0.0.0"', "Version=`"$version`"") | Set-Content "$layout\AppxManifest.xml" -Encoding UTF8
+          $makeappx = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\makeappx.exe" | Sort-Object FullName | Select-Object -Last 1
+          if (-not $makeappx) { throw "makeappx.exe not found: the Windows SDK is missing" }
+          & $makeappx.FullName pack /d $layout /p dist\Mousetrap.msix /o
+          if ($LASTEXITCODE -ne 0) { throw "makeappx failed" }
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: Mousetrap-store-package
+          path: dist/Mousetrap.msix
+          if-no-files-found: error
+
   # A tag turns the exe that was just built and tested into a draft release,
   # to be looked over and published by hand.
   release:
