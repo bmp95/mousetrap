@@ -31,7 +31,7 @@ Three screens, one pointer and no idea where it went. We all know the ritual: sh
 | ⏱️ **Two buttons, 3 seconds** | Left and right together: a gesture you almost never make by accident. If you do, the hold time can be changed in Settings |
 | ⌨️ **Or your own shortcut** | If you prefer the keyboard, record whatever combination you like (Ctrl + Alt + M, say) by pressing it once. It works alongside the mouse gesture or instead of it |
 | 🎯 **Jump to the centre** | Of the main screen, the screen the pointer is already on, or a specific one; you pick from the tray |
-| 🟠 **Orange disc** | Marks the spot for a moment so your eye finds it first time |
+| 🟠 **Orange disc** | Marks the spot for a moment so your eye finds it first time. The trap is drawn on it, so the pointer turns up caught under the box |
 | 🤫 **No ghost clicks** | Letting go of the buttons clicks nothing and opens no context menu on whatever was underneath |
 | 🖥️ **Any screen layout** | Different zoom levels, portrait screens, screens sitting higher than the main one: the centre is the centre |
 | 🪶 **A single 65 KB exe** | No installer, no admin rights, no network connections |
@@ -158,7 +158,7 @@ Tres pantallas, un puntero y ni idea de dónde está. Todos conocemos el ritual:
 | ⏱️ **Dos botones, 3 segundos** | Izquierdo y derecho a la vez: un gesto que casi nunca se hace por accidente. Si a ti sí te pasa, el tiempo se cambia en Ajustes |
 | ⌨️ **O tu propio atajo** | Si prefieres el teclado, graba la combinación que quieras (Ctrl + Alt + M, por ejemplo) pulsándola una vez. Funciona junto al gesto del ratón o en su lugar |
 | 🎯 **Salto al centro** | A la pantalla principal, a la pantalla donde ya esté el puntero o a una concreta; se elige desde la bandeja |
-| 🟠 **Disco naranja** | Marca el sitio un instante para que el ojo lo encuentre a la primera |
+| 🟠 **Disco naranja** | Marca el sitio un instante para que el ojo lo encuentre a la primera. Lleva dibujada la ratonera, así que el puntero aparece atrapado bajo la caja |
 | 🤫 **Sin clics fantasma** | Al soltar los botones no se pulsa nada ni se abre ningún menú contextual en lo que hubiera debajo |
 | 🖥️ **Pantallas de todo tipo** | Con distinto zoom, en vertical o colocadas más arriba que la principal: el centro es el centro |
 | 🪶 **Un solo exe de 65 KB** | Sin instalador, sin permisos de administrador y sin conectarse a nada |

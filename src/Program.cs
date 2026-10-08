@@ -180,8 +180,10 @@ namespace Mousetrap
         {
             Display target = Targeting.Pick(settings.Target, Displays(), Cursor.Position);
             Native.CancelPressInProgress();
-            Native.SetCursorPos(target.Center.X, target.Center.Y);
+            // The disc goes up first, so that from the moment the pointer arrives the
+            // button releases already have somewhere harmless to land.
             halo.ShowAt(target.Center, Math.Min(target.Bounds.Width, target.Bounds.Height) / 6);
+            Native.SetCursorPos(target.Center.X, target.Center.Y);
         }
 
         static List<Display> Displays()
@@ -303,6 +305,37 @@ namespace Mousetrap
             StartPosition = FormStartPosition.Manual;
             BackColor = Colour;
             Opacity = 0.5;
+            DoubleBuffered = true;
+            ResizeRedraw = true;
+        }
+
+        // The trap from the icon, in white: the box propped up on its stick, placed so
+        // that the pointer, which is in the middle of the disc, turns up caught under it.
+        // The measures are those of assets\TrapIcon.cs, on its canvas 32 units across.
+        // Painting has to stay quick: until the disc has painted for the first time,
+        // Windows lets the button releases through to whatever is underneath.
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            Graphics g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+            // The drawing reaches 18 units from the pointer and is kept within 80% of the disc's radius.
+            float unit = Width * 0.4f / 18f;
+            g.TranslateTransform(Width / 2f, Height / 2f);
+            g.ScaleTransform(unit, unit);
+            g.TranslateTransform(-13.8f, -23.4f);
+
+            using (Pen stick = new Pen(Color.White, 2.5f))
+            {
+                stick.StartCap = stick.EndCap = LineCap.Round;
+                g.DrawLine(stick, 5.9f, 27.6f, 9.0f, 18.9f);
+            }
+            g.TranslateTransform(23f, 28f);
+            g.RotateTransform(33);
+            Shapes.Fill(g, Color.White, new RectangleF(-17.5f, -13.5f, 17.5f, 13.5f), 2.3f);
+            // The mouth of the box, a shade apart.
+            Shapes.Fill(g, Color.FromArgb(120, Colour), new RectangleF(-17.5f, -3.9f, 17.5f, 3.9f), 1.9f);
         }
 
         // Must never take focus away from what the user was doing.
@@ -336,6 +369,8 @@ namespace Mousetrap
             if (old != null) old.Dispose();
             releasedAt = -1;
             Show();
+            // Painted before returning: Windows lets clicks through it until it has been.
+            Update();
         }
 
         // Stays while a button is still down, then lingers a moment so the eye can find it.
