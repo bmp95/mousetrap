@@ -12,7 +12,7 @@
   <Identity Name="BernabMuoz.51568A1EBD73F" Publisher="CN=7CE96C2A-5F0C-4A51-B000-9EDBB68ABF9E" Version="0.0.0.0" ProcessorArchitecture="neutral" />
 
   <Properties>
-    <DisplayName>Mousetrap</DisplayName>
+    <DisplayName>Mousetrap: Mouse Finder</DisplayName>
     <PublisherDisplayName>Bernabé Muñoz</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
@@ -28,7 +28,7 @@
 
   <Applications>
     <Application Id="Mousetrap" Executable="Mousetrap.exe" EntryPoint="Windows.FullTrustApplication">
-      <uap:VisualElements DisplayName="Mousetrap"
+      <uap:VisualElements DisplayName="Mousetrap: Mouse Finder"
                           Description="Hold both mouse buttons, or a keyboard shortcut, and the lost pointer jumps to the centre of a screen."
                           BackgroundColor="transparent"
                           Square150x150Logo="Assets\Square150x150Logo.png"
