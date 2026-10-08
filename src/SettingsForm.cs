@@ -54,27 +54,14 @@ namespace Mousetrap
             g.ScaleTransform(zoom, zoom);
         }
 
-        static GraphicsPath Round(RectangleF r, float radius)
-        {
-            float d = radius * 2;
-            GraphicsPath path = new GraphicsPath();
-            path.AddArc(r.X, r.Y, d, d, 180, 90);
-            path.AddArc(r.Right - d, r.Y, d, d, 270, 90);
-            path.AddArc(r.Right - d, r.Bottom - d, d, d, 0, 90);
-            path.AddArc(r.X, r.Bottom - d, d, d, 90, 90);
-            path.CloseFigure();
-            return path;
-        }
-
         public static void Fill(Graphics g, Color colour, RectangleF r, float radius)
         {
-            using (GraphicsPath path = Round(r, radius))
-            using (Brush brush = new SolidBrush(colour)) g.FillPath(brush, path);
+            Shapes.Fill(g, colour, r, radius);
         }
 
         public static void Outline(Graphics g, Color colour, float width, RectangleF r, float radius)
         {
-            using (GraphicsPath path = Round(r, radius))
+            using (GraphicsPath path = Shapes.Rounded(r, radius))
             using (Pen pen = new Pen(colour, width)) g.DrawPath(pen, path);
         }
 
@@ -128,6 +115,29 @@ namespace Mousetrap
                 case "Down": return "↓";
                 default: return name;
             }
+        }
+    }
+
+    // Rounded rectangles, kept apart from Look so that drawing one never waits for the
+    // fonts and the image Look loads the first time it is touched.
+    static class Shapes
+    {
+        public static GraphicsPath Rounded(RectangleF r, float radius)
+        {
+            float d = radius * 2;
+            GraphicsPath path = new GraphicsPath();
+            path.AddArc(r.X, r.Y, d, d, 180, 90);
+            path.AddArc(r.Right - d, r.Y, d, d, 270, 90);
+            path.AddArc(r.Right - d, r.Bottom - d, d, d, 0, 90);
+            path.AddArc(r.X, r.Bottom - d, d, d, 90, 90);
+            path.CloseFigure();
+            return path;
+        }
+
+        public static void Fill(Graphics g, Color colour, RectangleF r, float radius)
+        {
+            using (GraphicsPath path = Rounded(r, radius))
+            using (Brush brush = new SolidBrush(colour)) g.FillPath(brush, path);
         }
     }
 

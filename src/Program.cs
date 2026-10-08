@@ -310,6 +310,8 @@ namespace Mousetrap
         // The trap from the icon, in white: the box propped up on its stick, placed so
         // that the pointer, which is in the middle of the disc, turns up caught under it.
         // The measures are those of assets\TrapIcon.cs, on its canvas 32 units across.
+        // Painting has to stay quick: until the disc has painted for the first time,
+        // Windows lets the button releases through to whatever is underneath.
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
@@ -329,9 +331,9 @@ namespace Mousetrap
             }
             g.TranslateTransform(23f, 28f);
             g.RotateTransform(33);
-            Look.Fill(g, Color.White, new RectangleF(-17.5f, -13.5f, 17.5f, 13.5f), 2.3f);
+            Shapes.Fill(g, Color.White, new RectangleF(-17.5f, -13.5f, 17.5f, 13.5f), 2.3f);
             // The mouth of the box, a shade apart.
-            Look.Fill(g, Color.FromArgb(120, Colour), new RectangleF(-17.5f, -3.9f, 17.5f, 3.9f), 1.9f);
+            Shapes.Fill(g, Color.FromArgb(120, Colour), new RectangleF(-17.5f, -3.9f, 17.5f, 3.9f), 1.9f);
         }
 
         // Must never take focus away from what the user was doing.
