@@ -180,8 +180,10 @@ namespace Mousetrap
         {
             Display target = Targeting.Pick(settings.Target, Displays(), Cursor.Position);
             Native.CancelPressInProgress();
-            Native.SetCursorPos(target.Center.X, target.Center.Y);
+            // The disc goes up first, so that from the moment the pointer arrives the
+            // button releases already have somewhere harmless to land.
             halo.ShowAt(target.Center, Math.Min(target.Bounds.Width, target.Bounds.Height) / 6);
+            Native.SetCursorPos(target.Center.X, target.Center.Y);
         }
 
         static List<Display> Displays()
@@ -367,6 +369,8 @@ namespace Mousetrap
             if (old != null) old.Dispose();
             releasedAt = -1;
             Show();
+            // Painted before returning: Windows lets clicks through it until it has been.
+            Update();
         }
 
         // Stays while a button is still down, then lingers a moment so the eye can find it.
