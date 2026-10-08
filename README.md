@@ -6,7 +6,7 @@
 
 ![C#](https://img.shields.io/badge/C%23-.NET%20Framework%204-512BD4?logo=dotnet&logoColor=white)
 ![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4)
-![Size](https://img.shields.io/badge/exe-65%20KB-FF9600)
+![Size](https://img.shields.io/badge/exe-66%20KB-FF9600)
 ![License](https://img.shields.io/badge/license-GPL--3.0-3DDC84)
 [![Build](https://github.com/bmp95/mousetrap/actions/workflows/build.yml/badge.svg)](https://github.com/bmp95/mousetrap/actions/workflows/build.yml)
 
@@ -34,7 +34,7 @@ Three screens, one pointer and no idea where it went. We all know the ritual: sh
 | 🟠 **Orange disc** | Marks the spot for a moment so your eye finds it first time. The trap is drawn on it, so the pointer turns up caught under the box |
 | 🤫 **No ghost clicks** | Letting go of the buttons clicks nothing and opens no context menu on whatever was underneath |
 | 🖥️ **Any screen layout** | Different zoom levels, portrait screens, screens sitting higher than the main one: the centre is the centre |
-| 🪶 **A single 65 KB exe** | No installer, no admin rights, no network connections |
+| 🪶 **A single 66 KB exe** | No installer, no admin rights, no network connections |
 
 ### ⬇️ Install
 
@@ -161,7 +161,7 @@ Tres pantallas, un puntero y ni idea de dónde está. Todos conocemos el ritual:
 | 🟠 **Disco naranja** | Marca el sitio un instante para que el ojo lo encuentre a la primera. Lleva dibujada la ratonera, así que el puntero aparece atrapado bajo la caja |
 | 🤫 **Sin clics fantasma** | Al soltar los botones no se pulsa nada ni se abre ningún menú contextual en lo que hubiera debajo |
 | 🖥️ **Pantallas de todo tipo** | Con distinto zoom, en vertical o colocadas más arriba que la principal: el centro es el centro |
-| 🪶 **Un solo exe de 65 KB** | Sin instalador, sin permisos de administrador y sin conectarse a nada |
+| 🪶 **Un solo exe de 66 KB** | Sin instalador, sin permisos de administrador y sin conectarse a nada |
 
 ### ⬇️ Instalación
 
