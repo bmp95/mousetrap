@@ -303,6 +303,35 @@ namespace Mousetrap
             StartPosition = FormStartPosition.Manual;
             BackColor = Colour;
             Opacity = 0.5;
+            DoubleBuffered = true;
+            ResizeRedraw = true;
+        }
+
+        // The trap from the icon, in white: the box propped up on its stick, placed so
+        // that the pointer, which is in the middle of the disc, turns up caught under it.
+        // The measures are those of assets\TrapIcon.cs, on its canvas 32 units across.
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            Graphics g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.PixelOffsetMode = PixelOffsetMode.HighQuality;
+            // The drawing reaches 18 units from the pointer and is kept within 80% of the disc's radius.
+            float unit = Width * 0.4f / 18f;
+            g.TranslateTransform(Width / 2f, Height / 2f);
+            g.ScaleTransform(unit, unit);
+            g.TranslateTransform(-13.8f, -23.4f);
+
+            using (Pen stick = new Pen(Color.White, 2.5f))
+            {
+                stick.StartCap = stick.EndCap = LineCap.Round;
+                g.DrawLine(stick, 5.9f, 27.6f, 9.0f, 18.9f);
+            }
+            g.TranslateTransform(23f, 28f);
+            g.RotateTransform(33);
+            Look.Fill(g, Color.White, new RectangleF(-17.5f, -13.5f, 17.5f, 13.5f), 2.3f);
+            // The mouth of the box, a shade apart.
+            Look.Fill(g, Color.FromArgb(120, Colour), new RectangleF(-17.5f, -3.9f, 17.5f, 3.9f), 1.9f);
         }
 
         // Must never take focus away from what the user was doing.
