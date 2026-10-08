@@ -5,11 +5,13 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
 
-// Draws the Mousetrap icon and writes it as an .ico file: a box propped up on a stick
-// with a computer mouse under it, its cable for a tail. After changing the drawing:
+// Draws the Mousetrap icon: a box propped up on a stick with a computer mouse under
+// it, its cable for a tail. It writes the .ico built into the exe, or a PNG of any
+// size for the Store package. After changing the drawing:
 //
 //   %WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe /nologo /r:System.Drawing.dll /out:%TEMP%\TrapIcon.exe assets\TrapIcon.cs
 //   %TEMP%\TrapIcon.exe assets\mousetrap.ico
+//   %TEMP%\TrapIcon.exe 150 packaging\Assets\Square150x150Logo.png     (and 44 and 50, see packaging\AppxManifest.xml)
 public static class TrapIcon
 {
     static readonly Color Orange = Color.FromArgb(255, 150, 0);
@@ -24,12 +26,15 @@ public static class TrapIcon
 
     static int Main(string[] args)
     {
-        if (args.Length != 1)
+        int size;
+        if (args.Length == 1) Write(args[0]);
+        else if (args.Length == 2 && int.TryParse(args[0], out size))
+            using (Bitmap drawing = Render(size)) drawing.Save(args[1], ImageFormat.Png);
+        else
         {
-            Console.WriteLine("Usage: TrapIcon <file.ico>");
+            Console.WriteLine("Usage: TrapIcon <file.ico>   or   TrapIcon <size> <file.png>");
             return 1;
         }
-        Write(args[0]);
         return 0;
     }
 

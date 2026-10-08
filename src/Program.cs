@@ -102,8 +102,12 @@ namespace Mousetrap
         // the first run as over, so unticking the option later is respected.
         void SettleIn()
         {
-            try { SetStartsWithWindows(true); }
-            catch (Exception) { return; }   // a PC that forbids it: carry on without, and try again next time
+            // Installed from the Microsoft Store, the package itself asks Windows to start it.
+            if (!Native.Packaged)
+            {
+                try { SetStartsWithWindows(true); }
+                catch (Exception) { return; }   // a PC that forbids it: carry on without, and try again next time
+            }
             Save();
             tray.ShowBalloonTip(10000, AppName, T("Mousetrap arrancará con Windows a partir de ahora. Para cambiarlo, haz clic derecho en este icono.",
                                                   "Mousetrap will start with Windows from now on. To change that, right-click this icon."), ToolTipIcon.Info);
@@ -219,9 +223,20 @@ namespace Mousetrap
             ToolStripMenuItem options = new ToolStripMenuItem(T("Ajustes…", "Settings…"));
             options.Click += delegate { OpenSettings(); };
             menu.Items.Add(options);
-            ToolStripMenuItem startup = new ToolStripMenuItem(T("Iniciar con Windows", "Start with Windows"));
-            startup.Checked = StartsWithWindows();
-            startup.Click += delegate { SetStartsWithWindows(!StartsWithWindows()); };
+            ToolStripMenuItem startup;
+            if (Native.Packaged)
+            {
+                // A Store package cannot touch the startup list: Windows keeps the switch
+                // for it in Settings, so the menu takes the user there.
+                startup = new ToolStripMenuItem(T("Iniciar con Windows…", "Start with Windows…"));
+                startup.Click += delegate { Process.Start("ms-settings:startupapps"); };
+            }
+            else
+            {
+                startup = new ToolStripMenuItem(T("Iniciar con Windows", "Start with Windows"));
+                startup.Checked = StartsWithWindows();
+                startup.Click += delegate { SetStartsWithWindows(!StartsWithWindows()); };
+            }
             menu.Items.Add(startup);
             ToolStripMenuItem exit = new ToolStripMenuItem(T("Salir", "Exit"));
             exit.Click += delegate { Application.Exit(); };
@@ -482,6 +497,18 @@ namespace Mousetrap
         [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int ToUnicode(uint key, uint scanCode, byte[] keyState, [Out] char[] text, int capacity, uint flags);
 
         public static bool IsDown(int vk) { return (GetAsyncKeyState(vk) & 0x8000) != 0; }
+
+        [DllImport("kernel32.dll")] static extern int GetCurrentPackageFullName(ref int length, IntPtr name);
+
+        // Whether the app runs as a Microsoft Store package rather than as a plain exe.
+        public static readonly bool Packaged = IsPackaged();
+
+        static bool IsPackaged()
+        {
+            const int NoPackage = 15700;
+            int length = 0;
+            return GetCurrentPackageFullName(ref length, IntPtr.Zero) != NoPackage;
+        }
 
         // How many times bigger than at 96 dpi things are on the monitor the window is on.
         public static float ZoomOf(IntPtr hwnd)
