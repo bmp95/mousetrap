@@ -135,10 +135,9 @@ The result lands in `dist\Mousetrap.exe`.
 
 ### 🔏 Code signing policy
 
-Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org). The application is pending, so the releases published so far are not signed yet.
+The releases are not signed yet. Each one is built by GitHub Actions from the tagged commit, where the tests run, and its notes give the SHA-256 of the exe, so you can check that the file you downloaded is the one built there.
 
-- Committers and reviewers: [Bernabé Muñoz Peñas](https://github.com/bmp95)
-- Approvers: [Bernabé Muñoz Peñas](https://github.com/bmp95)
+- Maintainer, who writes, reviews and releases: [Bernabé Muñoz Peñas](https://github.com/bmp95)
 - Privacy policy: this program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it.
 
 ---
@@ -260,10 +259,9 @@ El resultado queda en `dist\Mousetrap.exe`.
 
 ### 🔏 Política de firma de código
 
-Firma de código gratuita proporcionada por [SignPath.io](https://signpath.io), con certificado de [SignPath Foundation](https://signpath.org). La solicitud está pendiente, así que las versiones publicadas hasta ahora aún no van firmadas.
+Las versiones publicadas todavía no van firmadas. Cada una la compila GitHub Actions desde el commit etiquetado, donde se ejecutan las pruebas, y sus notas dan el SHA-256 del exe, para que puedas comprobar que el fichero que has descargado es el que se compiló allí.
 
-- Autores y revisores: [Bernabé Muñoz Peñas](https://github.com/bmp95)
-- Aprobadores: [Bernabé Muñoz Peñas](https://github.com/bmp95)
+- Responsable, que escribe, revisa y publica: [Bernabé Muñoz Peñas](https://github.com/bmp95)
 - Política de privacidad: este programa no transfiere ninguna información a otros sistemas en red salvo que lo pida expresamente el usuario o quien lo instale o lo opere.
 
 ---
